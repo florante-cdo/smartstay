@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Starwood Gardens Hotel{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Source+Sans+3:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script>
+    tailwind.config = {
+      theme: { extend: {
+        colors: {
+          garden: { 50: "#f1f6f3", 100: "#dcebe2", 600: "#2f6b4f", 700: "#255640", 900: "#142e22" },
+          sand: "#f7f4ee"
+        },
+        fontFamily: {
+          display: ["Fraunces", "Georgia", "serif"],
+          body: ['"Source Sans 3"', "system-ui", "sans-serif"]
+        }
+      } }
+    }
+  </script>
+</head>
+<body class="bg-sand font-body text-garden-900 antialiased pb-16 md:pb-0">
+  {% if demo_mode %}
+  <div class="bg-amber-100 text-amber-900 text-center text-sm py-1.5 px-4">
+    Demo with sample content. No real bookings, rates or availability.
+  </div>
+  {% endif %}
+  {% block content %}{% endblock %}
+  <footer class="px-6 py-8 text-center text-sm text-garden-900/70">
+    Starwood Gardens Hotel · Sample content for demonstration
+  </footer>
+  {% block scripts %}{% endblock %}
+</body>
+</html>
