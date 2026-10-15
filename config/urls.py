@@ -3,12 +3,13 @@ from django.contrib.auth.views import LoginView, LogoutView
 from django.urls import path
 
 from core import staff_views
-from core.views import landing
+from core.views import enquiry_thanks, landing
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", landing, name="home"),
     path("promo/", landing, name="promo"),
+    path("thanks/", enquiry_thanks, name="enquiry_thanks"),
     path(
         "staff/login/",
         LoginView.as_view(template_name="staff/login.html", redirect_authenticated_user=True),
