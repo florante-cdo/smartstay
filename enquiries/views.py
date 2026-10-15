@@ -10,16 +10,16 @@ from core.permissions import role_required, user_role
 
 from .models import Enquiry
 
-PAGE_SIZE = 15
+PAGE_SIZE = 10
 
-STATUS_STYLES = {
-    "new": "bg-sky-100 text-sky-800",
-    "contacted": "bg-indigo-100 text-indigo-800",
-    "pending_guest": "bg-amber-100 text-amber-800",
-    "reservation_pending": "bg-violet-100 text-violet-800",
-    "confirmed": "bg-emerald-100 text-emerald-800",
-    "not_converted": "bg-stone-200 text-stone-700",
-    "cancelled": "bg-red-100 text-red-800",
+STATUS_DOTS = {
+    "new": "bg-sky-500",
+    "contacted": "bg-indigo-500",
+    "pending_guest": "bg-amber-500",
+    "reservation_pending": "bg-violet-500",
+    "confirmed": "bg-emerald-600",
+    "not_converted": "bg-stone-400",
+    "cancelled": "bg-red-500",
 }
 
 
@@ -44,12 +44,14 @@ def inbox(request):
             | Q(reference__icontains=query)
         )
 
-    page = Paginator(enquiries, PAGE_SIZE).get_page(request.GET.get("page"))
+    paginator = Paginator(enquiries, PAGE_SIZE)
+    page = paginator.get_page(request.GET.get("page"))
+    pages = list(paginator.get_elided_page_range(page.number, on_each_side=1, on_ends=1))
 
     overdue_before = timezone.now() - timedelta(hours=24)
     rows = list(page.object_list)
     for row in rows:
-        row.badge = STATUS_STYLES.get(row.status, "")
+        row.dot = STATUS_DOTS.get(row.status, "bg-stone-400")
         row.source_label = row.source.replace("_", " ").title()
         row.needs_follow_up = (
             row.status == Enquiry.Status.NEW and row.created_at < overdue_before
@@ -72,6 +74,8 @@ def inbox(request):
         "nav": "inbox",
         "rows": rows,
         "page": page,
+        "pages": pages,
+        "ellipsis": Paginator.ELLIPSIS,
         "status": status,
         "source": source,
         "query": query,

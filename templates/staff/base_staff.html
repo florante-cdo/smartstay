@@ -1,24 +1,38 @@
 {% extends "base.html" %}
 
+{% block footer %}{% endblock %}
+
 {% block content %}
-<div class="border-b border-garden-900/10 bg-white">
-  <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-6 py-3">
-    <nav class="flex flex-wrap items-center gap-5 text-sm font-medium">
-      <a href="{% url 'staff_home' %}" class="font-display text-lg font-semibold">Starwood Gardens · Staff</a>
-      <a href="{% url 'staff_inbox' %}"
-         class="{% if nav == 'inbox' %}text-garden-600 underline underline-offset-4{% else %}hover:text-garden-600{% endif %}">Inbox</a>
-    </nav>
-    <div class="flex items-center gap-4 text-sm">
-      <span>{{ request.user.get_full_name|default:request.user.username }}</span>
-      <span class="rounded-full bg-garden-100 px-2.5 py-0.5 font-medium capitalize text-garden-700">{{ role }}</span>
+<div class="flex min-h-screen flex-col bg-[#f2f4ef] md:flex-row">
+  <aside class="bg-garden-900 text-garden-100 md:sticky md:top-0 md:flex md:h-screen md:w-60 md:shrink-0 md:flex-col md:justify-between">
+    <div>
+      <a href="{% url 'staff_home' %}" class="block px-5 py-5">
+        <span class="block font-display text-xl font-semibold text-white">Starwood Gardens</span>
+        <span class="block text-sm text-garden-100/70">Staff area</span>
+      </a>
+      <nav class="flex gap-1 overflow-x-auto px-3 pb-3 md:flex-col md:pb-0" aria-label="Staff navigation">
+        <a href="{% url 'staff_home' %}"
+           class="whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium {% if nav == 'home' %}bg-white/10 text-white{% else %}text-garden-100/80 hover:bg-white/5 hover:text-white{% endif %}">Overview</a>
+        <a href="{% url 'staff_inbox' %}"
+           class="whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium {% if nav == 'inbox' %}bg-white/10 text-white{% else %}text-garden-100/80 hover:bg-white/5 hover:text-white{% endif %}">Enquiries</a>
+      </nav>
+    </div>
+    <div class="flex items-center justify-between gap-3 border-t border-white/10 px-5 py-3 text-sm">
+      <div class="min-w-0">
+        <p class="truncate font-medium text-white">{{ request.user.get_full_name|default:request.user.username }}</p>
+        <p class="capitalize text-garden-100/70">{{ role }}</p>
+      </div>
       <form method="post" action="{% url 'staff_logout' %}">
         {% csrf_token %}
-        <button type="submit" class="font-medium text-garden-600 hover:text-garden-900">Sign out</button>
+        <button type="submit" class="rounded-md px-2.5 py-1.5 font-medium text-garden-100 hover:bg-white/10 hover:text-white">Sign out</button>
       </form>
     </div>
-  </div>
+  </aside>
+
+  <main class="min-w-0 flex-1 px-5 py-8 md:px-10">
+    <div class="mx-auto max-w-5xl">
+      {% block staff_content %}{% endblock %}
+    </div>
+  </main>
 </div>
-<main class="mx-auto max-w-6xl px-6 py-8">
-  {% block staff_content %}{% endblock %}
-</main>
 {% endblock %}

@@ -30,9 +30,9 @@
   </div>
   {% endif %}
   {% block content %}{% endblock %}
-  <footer class="px-6 py-8 text-center text-sm text-garden-900/70">
+  {% block footer %}<footer class="px-6 py-8 text-center text-sm text-garden-900/70">
     Starwood Gardens Hotel · Sample content for demonstration
-  </footer>
+  </footer>{% endblock %}
   {% block scripts %}{% endblock %}
 </body>
 </html>
