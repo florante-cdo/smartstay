@@ -1,0 +1,146 @@
+{% extends "staff/base_staff.html" %}
+
+{% block title %}{{ enquiry.guest_name }} · Starwood Gardens{% endblock %}
+
+{% block staff_content %}
+<a href="{% url 'staff_inbox' %}" class="text-sm font-medium text-garden-600 hover:text-garden-900">Back to enquiries</a>
+
+<div class="mt-3 flex flex-wrap items-end justify-between gap-3">
+  <div>
+    <h1 class="font-display text-3xl font-semibold tracking-tight">{{ enquiry.guest_name }}</h1>
+    <p class="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-garden-900/70">
+      <span class="tabular-nums">{{ enquiry.reference }}</span>
+      <span class="inline-flex items-center gap-2 font-medium text-garden-900">
+        <span class="h-2 w-2 rounded-full {{ dot }}"></span>{{ enquiry.get_status_display }}
+      </span>
+      <span>Received {{ enquiry.created_at|date:"d M, H:i" }} ({{ enquiry.created_at|timesince }} ago)</span>
+    </p>
+  </div>
+  <a href="tel:{{ enquiry.phone }}" hx-boost="false"
+     class="rounded-md bg-garden-700 px-4 py-2 text-sm font-semibold text-white hover:bg-garden-900">Call {{ enquiry.phone }}</a>
+</div>
+
+<div class="mt-6 grid gap-6 lg:grid-cols-3">
+  <div class="space-y-6 lg:col-span-2">
+
+    <section class="rounded-lg border border-garden-900/10 bg-white p-5">
+      <h2 class="text-sm font-semibold">Request</h2>
+      <dl class="mt-4 grid gap-x-6 gap-y-4 text-sm sm:grid-cols-2">
+        <div><dt class="text-xs text-garden-900/60">Phone</dt><dd class="mt-0.5 font-medium tabular-nums">{{ enquiry.phone }}</dd></div>
+        <div><dt class="text-xs text-garden-900/60">Prefers</dt><dd class="mt-0.5 font-medium">{{ enquiry.get_preferred_contact_display|default:enquiry.preferred_contact }}</dd></div>
+        <div>
+          <dt class="text-xs text-garden-900/60">Stay</dt>
+          <dd class="mt-0.5 font-medium">{{ enquiry.requested_check_in|date:"D d M Y" }} to {{ enquiry.requested_check_out|date:"D d M Y" }}
+            <span class="font-normal text-garden-900/60">({{ nights }} night{{ nights|pluralize }})</span></dd>
+        </div>
+        <div><dt class="text-xs text-garden-900/60">Guests</dt><dd class="mt-0.5 font-medium">{{ enquiry.guest_count }}</dd></div>
+        <div><dt class="text-xs text-garden-900/60">Room type</dt><dd class="mt-0.5 font-medium">{{ enquiry.room_type.name|default:"No preference" }}</dd></div>
+        <div><dt class="text-xs text-garden-900/60">Assigned to</dt>
+          <dd class="mt-0.5 font-medium">{% if enquiry.assigned_to %}{{ enquiry.assigned_to.get_full_name|default:enquiry.assigned_to.username }}{% else %}Unassigned{% endif %}</dd></div>
+        <div class="sm:col-span-2">
+          <dt class="text-xs text-garden-900/60">Message from guest</dt>
+          <dd class="mt-0.5">{% if enquiry.message %}{{ enquiry.message|linebreaksbr }}{% else %}<span class="text-garden-900/50">No message</span>{% endif %}</dd>
+        </div>
+      </dl>
+    </section>
+
+    <section class="rounded-lg border border-garden-900/10 bg-white p-5">
+      <h2 class="text-sm font-semibold">Where this enquiry came from</h2>
+      <dl class="mt-4 grid gap-x-6 gap-y-4 text-sm sm:grid-cols-2">
+        <div><dt class="text-xs text-garden-900/60">Source</dt><dd class="mt-0.5 font-medium">{{ source_label }}</dd></div>
+        <div><dt class="text-xs text-garden-900/60">Campaign</dt>
+          <dd class="mt-0.5 font-medium">{% if enquiry.campaign %}{{ enquiry.campaign.name }}{% else %}None{% endif %}</dd></div>
+        <div><dt class="text-xs text-garden-900/60">How it arrived</dt>
+          <dd class="mt-0.5 font-medium">{{ enquiry.get_entry_channel_display|default:enquiry.entry_channel }}</dd></div>
+        {% if enquiry.campaign_raw and not enquiry.campaign %}
+        <div><dt class="text-xs text-garden-900/60">Tag received (not recognised)</dt>
+          <dd class="mt-0.5 font-medium">{{ enquiry.campaign_raw }}</dd></div>
+        {% endif %}
+      </dl>
+    </section>
+
+    <section class="rounded-lg border border-garden-900/10 bg-white p-5">
+      <h2 class="text-sm font-semibold">Notes</h2>
+      <form method="post" class="mt-4 space-y-3">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="note">
+        <div>
+          <label for="{{ note_form.note.id_for_label }}" class="text-sm font-medium">{{ note_form.note.label }}</label>
+          {{ note_form.note }}
+          {% for err in note_form.note.errors %}<p class="mt-1 text-sm text-red-700">{{ err }}</p>{% endfor %}
+        </div>
+        <div class="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <label for="{{ note_form.next_follow_up_at.id_for_label }}" class="text-sm font-medium">{{ note_form.next_follow_up_at.label }} <span class="font-normal text-garden-900/60">(optional)</span></label>
+            {{ note_form.next_follow_up_at }}
+            {% for err in note_form.next_follow_up_at.errors %}<p class="mt-1 text-sm text-red-700">{{ err }}</p>{% endfor %}
+          </div>
+          <button type="submit" class="rounded-md bg-garden-700 px-4 py-2 text-sm font-semibold text-white hover:bg-garden-900">Save note</button>
+        </div>
+      </form>
+
+      <ul class="mt-5 divide-y divide-garden-900/10 border-t border-garden-900/10">
+        {% for n in notes %}
+        <li class="py-3 text-sm">
+          <p>{{ n.note|linebreaksbr }}</p>
+          <p class="mt-1 text-xs text-garden-900/60">
+            {{ n.author.get_full_name|default:n.author.username }}, {{ n.created_at|date:"d M, H:i" }}
+            {% if n.next_follow_up_at %}<span class="font-medium text-garden-700"> · Follow up {{ n.next_follow_up_at|date:"d M, H:i" }}</span>{% endif %}
+          </p>
+        </li>
+        {% empty %}
+        <li class="py-6 text-center text-sm text-garden-900/60">No notes yet. Record each call or message here.</li>
+        {% endfor %}
+      </ul>
+    </section>
+  </div>
+
+  <div class="space-y-6">
+    <section class="rounded-lg border border-garden-900/10 bg-white p-5">
+      <h2 class="text-sm font-semibold">Status</h2>
+      {% if can_change %}
+      <form method="post" class="mt-3 space-y-3">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="status">
+        {% for err in status_form.non_field_errors %}<p class="text-sm text-red-700">{{ err }}</p>{% endfor %}
+        <div>
+          <label for="{{ status_form.to_status.id_for_label }}" class="text-sm font-medium">{{ status_form.to_status.label }}</label>
+          {{ status_form.to_status }}
+        </div>
+        <div>
+          <label for="{{ status_form.reason.id_for_label }}" class="text-sm font-medium">{{ status_form.reason.label }}</label>
+          {{ status_form.reason }}
+          {% for err in status_form.reason.errors %}<p class="mt-1 text-sm text-red-700">{{ err }}</p>{% endfor %}
+        </div>
+        <button type="submit" class="w-full rounded-md bg-garden-700 px-4 py-2 text-sm font-semibold text-white hover:bg-garden-900">Update status</button>
+      </form>
+      {% else %}
+      <p class="mt-3 text-sm text-garden-900/70">This status is handled through reservations, so it can't be changed here.</p>
+      {% endif %}
+
+      {% if enquiry.assigned_to != request.user %}
+      <form method="post" class="mt-4 border-t border-garden-900/10 pt-4">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="assign">
+        <button type="submit" class="text-sm font-medium text-garden-600 hover:text-garden-900">Assign to me</button>
+      </form>
+      {% endif %}
+    </section>
+
+    <section class="rounded-lg border border-garden-900/10 bg-white p-5">
+      <h2 class="text-sm font-semibold">History</h2>
+      <ol class="mt-3 space-y-3">
+        {% for c in history %}
+        <li class="text-sm">
+          <p class="font-medium">{% if c.from_label %}{{ c.from_label }} to {% endif %}{{ c.to_label }}</p>
+          <p class="text-xs text-garden-900/60">{{ c.who }}, {{ c.changed_at|date:"d M, H:i" }}</p>
+          {% if c.reason %}<p class="mt-0.5 text-xs text-garden-900/80">Reason: {{ c.reason }}</p>{% endif %}
+        </li>
+        {% empty %}
+        <li class="text-sm text-garden-900/60">No changes yet.</li>
+        {% endfor %}
+      </ol>
+    </section>
+  </div>
+</div>
+{% endblock %}

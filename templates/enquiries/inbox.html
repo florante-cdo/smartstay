@@ -57,7 +57,7 @@
       {% for row in rows %}
       <tr class="hover:bg-garden-50/60">
         <td class="border-l-4 px-4 py-3 {% if row.needs_follow_up %}border-amber-500{% else %}border-transparent{% endif %}">
-          <p class="font-semibold">{{ row.guest_name }}</p>
+          <p class="font-semibold"><a href="{% url 'staff_enquiry' row.pk %}" class="hover:text-garden-600 hover:underline">{{ row.guest_name }}</a></p>
           <p class="mt-0.5 flex flex-wrap gap-x-3 text-xs text-garden-900/60">
             <span class="tabular-nums">{{ row.reference }}</span>
             <span class="tabular-nums">{{ row.phone }}</span>

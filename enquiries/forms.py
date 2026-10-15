@@ -84,3 +84,55 @@ class EnquiryForm(forms.ModelForm):
         if room and count and count > room.capacity:
             self.add_error("guest_count", f"The {room.name} sleeps up to {room.capacity} guests.")
         return data
+
+
+from django import forms  # noqa: E402
+
+from .models import EnquiryNote  # noqa: E402
+from .workflow import REASON_REQUIRED, allowed_next  # noqa: E402
+
+_FIELD = (
+    "mt-1 w-full rounded-md border border-garden-900/20 bg-white px-3 py-2 text-sm "
+    "focus:border-garden-600 focus:outline-none focus:ring-2 focus:ring-garden-600/30"
+)
+
+
+class NoteForm(forms.ModelForm):
+    next_follow_up_at = forms.DateTimeField(
+        required=False,
+        label="Follow up on",
+        input_formats=["%Y-%m-%dT%H:%M"],
+        widget=forms.DateTimeInput(
+            attrs={"type": "datetime-local", "class": _FIELD}, format="%Y-%m-%dT%H:%M"
+        ),
+    )
+
+    class Meta:
+        model = EnquiryNote
+        fields = ["note", "next_follow_up_at"]
+        labels = {"note": "Add a note"}
+        widgets = {
+            "note": forms.Textarea(
+                attrs={"rows": 3, "class": _FIELD, "placeholder": "What was said or agreed?"}
+            )
+        }
+
+
+class StatusForm(forms.Form):
+    to_status = forms.ChoiceField(label="Move to", widget=forms.Select(attrs={"class": _FIELD}))
+    reason = forms.CharField(
+        required=False,
+        max_length=200,
+        label="Reason",
+        widget=forms.TextInput(attrs={"class": _FIELD, "placeholder": "Needed for Not converted and Cancelled"}),
+    )
+
+    def __init__(self, *args, current_status, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["to_status"].choices = allowed_next(current_status)
+
+    def clean(self):
+        data = super().clean()
+        if data.get("to_status") in REASON_REQUIRED and not data.get("reason", "").strip():
+            self.add_error("reason", "Please give a reason.")
+        return data

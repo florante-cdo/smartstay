@@ -23,7 +23,7 @@
     <p class="text-xs text-garden-900/60">Oldest enquiries that nobody has replied to</p>
     <div class="mt-3 divide-y divide-garden-900/10 overflow-hidden rounded-lg border border-garden-900/10 bg-white">
       {% for e in attention %}
-      <a href="{% url 'staff_inbox' %}?q={{ e.reference|urlencode }}"
+      <a href="{% url 'staff_enquiry' e.pk %}"
          class="flex items-center justify-between gap-4 border-l-4 px-4 py-3 hover:bg-garden-50 {% if e.is_overdue %}border-amber-500{% else %}border-transparent{% endif %}">
         <span class="min-w-0">
           <span class="block truncate font-semibold">{{ e.guest_name }}</span>

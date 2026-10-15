@@ -37,3 +37,34 @@ def create_web_enquiry(form, tracking, landing_page):
         enquiry=enquiry, from_status="", to_status=Enquiry.Status.NEW
     )
     return enquiry
+
+
+def change_status(enquiry, to_status, user, reason=""):
+    """Move an enquiry to a new status and record who did it and why."""
+    from django.core.exceptions import ValidationError
+    from django.db import transaction
+
+    from .models import StatusChange
+    from .workflow import REASON_REQUIRED, allowed_next
+
+    if to_status not in [value for value, _ in allowed_next(enquiry.status)]:
+        raise ValidationError("That status change is not allowed from here.")
+    if to_status in REASON_REQUIRED and not reason.strip():
+        raise ValidationError("Please give a reason.")
+
+    with transaction.atomic():
+        old = enquiry.status
+        enquiry.status = to_status
+        fields = ["status", "updated_at"]
+        if old == "new" and enquiry.assigned_to_id is None:
+            enquiry.assigned_to = user
+            fields.append("assigned_to")
+        enquiry.save(update_fields=fields)
+        StatusChange.objects.create(
+            enquiry=enquiry,
+            from_status=old,
+            to_status=to_status,
+            changed_by=user,
+            reason=reason.strip(),
+        )
+    return enquiry

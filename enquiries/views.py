@@ -84,3 +84,80 @@ def inbox(request):
         "base_query": params.urlencode(),
     }
     return render(request, "enquiries/inbox.html", context)
+
+
+from django.contrib import messages  # noqa: E402
+from django.core.exceptions import ValidationError  # noqa: E402
+from django.shortcuts import get_object_or_404, redirect  # noqa: E402
+
+from .forms import NoteForm, StatusForm  # noqa: E402
+from .services import change_status  # noqa: E402
+from .workflow import allowed_next  # noqa: E402
+
+
+@never_cache
+@role_required("reception", "manager")
+def enquiry_detail(request, pk):
+    enquiry = get_object_or_404(
+        Enquiry.objects.select_related("campaign", "room_type", "assigned_to"), pk=pk
+    )
+    note_form = NoteForm(prefix="note")
+    status_form = StatusForm(current_status=enquiry.status, prefix="st")
+
+    if request.method == "POST":
+        action = request.POST.get("action")
+        if action == "note":
+            note_form = NoteForm(request.POST, prefix="note")
+            if note_form.is_valid():
+                note = note_form.save(commit=False)
+                note.enquiry = enquiry
+                note.author = request.user
+                note.save()
+                messages.success(request, "Note added.")
+                return redirect("staff_enquiry", pk=enquiry.pk)
+        elif action == "status":
+            status_form = StatusForm(request.POST, current_status=enquiry.status, prefix="st")
+            if status_form.is_valid():
+                try:
+                    change_status(
+                        enquiry,
+                        status_form.cleaned_data["to_status"],
+                        request.user,
+                        status_form.cleaned_data["reason"],
+                    )
+                except ValidationError as exc:
+                    status_form.add_error(None, exc.messages[0])
+                else:
+                    messages.success(request, "Status updated.")
+                    return redirect("staff_enquiry", pk=enquiry.pk)
+        elif action == "assign":
+            enquiry.assigned_to = request.user
+            enquiry.save(update_fields=["assigned_to", "updated_at"])
+            messages.success(request, "This enquiry is now assigned to you.")
+            return redirect("staff_enquiry", pk=enquiry.pk)
+
+    labels = dict(Enquiry.Status.choices)
+    history = list(enquiry.status_changes.select_related("changed_by").order_by("-changed_at"))
+    for change in history:
+        change.from_label = labels.get(change.from_status, "")
+        change.to_label = labels.get(change.to_status, change.to_status)
+        change.who = (
+            (change.changed_by.get_full_name() or change.changed_by.username)
+            if change.changed_by
+            else "System"
+        )
+
+    context = {
+        "role": user_role(request.user),
+        "nav": "inbox",
+        "enquiry": enquiry,
+        "nights": (enquiry.requested_check_out - enquiry.requested_check_in).days,
+        "dot": STATUS_DOTS.get(enquiry.status, "bg-stone-400"),
+        "source_label": enquiry.source.replace("_", " ").title(),
+        "notes": enquiry.notes.select_related("author").order_by("-created_at"),
+        "history": history,
+        "note_form": note_form,
+        "status_form": status_form,
+        "can_change": bool(allowed_next(enquiry.status)),
+    }
+    return render(request, "enquiries/detail.html", context)

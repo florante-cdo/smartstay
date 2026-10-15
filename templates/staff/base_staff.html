@@ -139,6 +139,7 @@
       {% if demo_mode %}
       <p class="mb-4 rounded-md bg-amber-100 px-3 py-2 text-xs text-amber-900 md:hidden">Sample data. No live availability or payments.</p>
       {% endif %}
+      {% if messages %}<div class="mb-4 space-y-2" role="status">{% for m in messages %}<p class="rounded-md bg-garden-100 px-3 py-2 text-sm font-medium text-garden-900">{{ m }}</p>{% endfor %}</div>{% endif %}
       {% block staff_content %}{% endblock %}
     </div>
   </main>

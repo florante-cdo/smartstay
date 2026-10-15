@@ -1,3 +1,4 @@
+from enquiries.views import enquiry_detail
 from django.contrib import admin
 from django.contrib.auth.views import LoginView, LogoutView
 from django.urls import path
@@ -19,4 +20,5 @@ urlpatterns = [
     path("staff/logout/", LogoutView.as_view(), name="staff_logout"),
     path("staff/", staff_views.staff_home, name="staff_home"),
     path("staff/inbox/", enquiry_views.inbox, name="staff_inbox"),
+    path("staff/enquiries/<int:pk>/", enquiry_detail, name="staff_enquiry"),
 ]
