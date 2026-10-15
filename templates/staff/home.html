@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Staff · Starwood Gardens{% endblock %}
+
+{% block content %}
+<div class="border-b border-garden-900/10 bg-white">
+  <div class="mx-auto flex max-w-5xl items-center justify-between px-6 py-3">
+    <p class="font-display text-lg font-semibold">Starwood Gardens · Staff</p>
+    <div class="flex items-center gap-4 text-sm">
+      <span>{{ request.user.get_full_name|default:request.user.username }}</span>
+      <span class="rounded-full bg-garden-100 px-2.5 py-0.5 font-medium capitalize text-garden-700">{{ role }}</span>
+      <form method="post" action="{% url 'staff_logout' %}">
+        {% csrf_token %}
+        <button type="submit" class="font-medium text-garden-600 hover:text-garden-900">Sign out</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<main class="mx-auto max-w-5xl px-6 py-10">
+  <h1 class="font-display text-3xl font-semibold">Welcome back</h1>
+
+  <div class="mt-6 grid gap-4 sm:grid-cols-2">
+    <div class="rounded-lg bg-white p-5 ring-1 ring-garden-900/10">
+      <p class="text-sm text-garden-900/70">New enquiries waiting</p>
+      <p class="mt-1 text-3xl font-semibold">{{ new_enquiries }}</p>
+    </div>
+    <div class="rounded-lg bg-white p-5 ring-1 ring-garden-900/10">
+      <p class="text-sm text-garden-900/70">All enquiries</p>
+      <p class="mt-1 text-3xl font-semibold">{{ total_enquiries }}</p>
+    </div>
+  </div>
+
+  <h2 class="mt-10 font-display text-xl font-semibold">Your screens</h2>
+  <ul class="mt-3 space-y-2 text-garden-900/80">
+    <li>Enquiry inbox (coming next)</li>
+    <li>Reservations (coming next)</li>
+    {% if role == "manager" %}
+    <li>Campaign links (manager only, coming next)</li>
+    <li>Dashboard (manager only, coming next)</li>
+    {% endif %}
+  </ul>
+</main>
+{% endblock %}
