@@ -4,31 +4,57 @@
 
 {% block staff_content %}
 <h1 class="font-display text-3xl font-semibold tracking-tight">Welcome back</h1>
-<p class="mt-1 text-garden-900/70">Here is what needs attention today.</p>
+<p class="mt-1 text-garden-900/70">{{ total_enquiries }} enquiries on record. Here is what needs attention today.</p>
 
-<div class="mt-8 divide-y divide-garden-900/10 overflow-hidden rounded-lg border border-garden-900/10 bg-white">
-  <a href="{% url 'staff_inbox' %}?status=new" class="flex items-center justify-between px-5 py-4 hover:bg-garden-50">
-    <span>
-      <span class="block font-medium">New enquiries</span>
-      <span class="block text-sm text-garden-900/60">Waiting for a first reply</span>
-    </span>
-    <span class="font-display text-3xl font-semibold tabular-nums">{{ new_enquiries }}</span>
-  </a>
-  <a href="{% url 'staff_inbox' %}" class="flex items-center justify-between px-5 py-4 hover:bg-garden-50">
-    <span>
-      <span class="block font-medium">All enquiries</span>
-      <span class="block text-sm text-garden-900/60">Every request received</span>
-    </span>
-    <span class="font-display text-3xl font-semibold tabular-nums">{{ total_enquiries }}</span>
-  </a>
+<div class="mt-8 grid grid-cols-2 gap-3 lg:grid-cols-4">
+  {% for t in tiles %}
+  {% if t.url %}<a href="{% url 'staff_inbox' %}{{ t.url }}"{% else %}<div{% endif %}
+     class="block rounded-lg border bg-white px-4 py-4 {% if t.warn %}border-amber-400{% else %}border-garden-900/10{% endif %} {% if t.url %}hover:bg-garden-50{% endif %}">
+    <span class="block text-sm font-medium">{{ t.label }}</span>
+    <span class="mt-2 block font-display text-4xl font-semibold tabular-nums {% if t.warn %}text-amber-700{% endif %}">{{ t.value }}</span>
+    <span class="mt-1 block text-xs text-garden-900/60">{{ t.hint }}</span>
+  {% if t.url %}</a>{% else %}</div>{% endif %}
+  {% endfor %}
 </div>
 
-<h2 class="mt-10 text-sm font-semibold text-garden-900/70">Coming next</h2>
-<ul class="mt-2 space-y-1 text-garden-900/80">
-  <li>Enquiry details and notes</li>
-  <li>Reservations</li>
-  {% if role == "manager" %}
-  <li>Campaign links and the dashboard (manager only)</li>
-  {% endif %}
-</ul>
+<div class="mt-8 grid gap-6 lg:grid-cols-5">
+  <section class="lg:col-span-3">
+    <h2 class="text-sm font-semibold">Needs attention</h2>
+    <p class="text-xs text-garden-900/60">Oldest enquiries that nobody has replied to</p>
+    <div class="mt-3 divide-y divide-garden-900/10 overflow-hidden rounded-lg border border-garden-900/10 bg-white">
+      {% for e in attention %}
+      <a href="{% url 'staff_inbox' %}?q={{ e.reference|urlencode }}"
+         class="flex items-center justify-between gap-4 border-l-4 px-4 py-3 hover:bg-garden-50 {% if e.is_overdue %}border-amber-500{% else %}border-transparent{% endif %}">
+        <span class="min-w-0">
+          <span class="block truncate font-semibold">{{ e.guest_name }}</span>
+          <span class="block truncate text-xs text-garden-900/60">
+            {{ e.reference }} · {{ e.requested_check_in|date:"d M" }} to {{ e.requested_check_out|date:"d M" }}, {{ e.guest_count }} guest{{ e.guest_count|pluralize }}
+            {% if e.campaign %}· {{ e.campaign.name }}{% endif %}
+          </span>
+        </span>
+        <span class="shrink-0 text-right text-xs {% if e.is_overdue %}font-medium text-amber-700{% else %}text-garden-900/60{% endif %}">
+          Waiting {{ e.created_at|timesince }}
+        </span>
+      </a>
+      {% empty %}
+      <p class="px-4 py-8 text-center text-sm text-garden-900/60">All caught up. No enquiries are waiting.</p>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="lg:col-span-2">
+    <h2 class="text-sm font-semibold">Recent activity</h2>
+    <p class="text-xs text-garden-900/60">Latest status changes</p>
+    <ul class="mt-3 divide-y divide-garden-900/10 overflow-hidden rounded-lg border border-garden-900/10 bg-white">
+      {% for c in activity %}
+      <li class="px-4 py-3 text-sm">
+        <p><span class="font-medium">{{ c.enquiry.reference }}</span> moved to {{ c.to_label }}</p>
+        <p class="text-xs text-garden-900/60">{{ c.who }}, {{ c.changed_at|timesince }} ago</p>
+      </li>
+      {% empty %}
+      <li class="px-4 py-8 text-center text-sm text-garden-900/60">No activity yet.</li>
+      {% endfor %}
+    </ul>
+  </section>
+</div>
 {% endblock %}

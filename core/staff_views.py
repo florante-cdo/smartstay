@@ -1,7 +1,10 @@
+from datetime import timedelta
+
 from django.shortcuts import render
+from django.utils import timezone
 from django.views.decorators.cache import never_cache
 
-from enquiries.models import Enquiry
+from enquiries.models import Enquiry, StatusChange
 
 from .permissions import role_required, user_role
 
@@ -9,10 +12,43 @@ from .permissions import role_required, user_role
 @never_cache
 @role_required("reception", "manager")
 def staff_home(request):
+    now = timezone.now()
+    labels = dict(Enquiry.Status.choices)
+
+    total = Enquiry.objects.count()
+    new = Enquiry.objects.filter(status=Enquiry.Status.NEW)
+    needs_follow_up = new.filter(created_at__lt=now - timedelta(hours=24)).count()
+
+    tiles = [
+        {"label": "New enquiries", "hint": "Waiting for a first reply",
+         "value": new.count(), "url": "?status=new", "warn": False},
+        {"label": "Needs follow-up", "hint": "New for more than 24 hours",
+         "value": needs_follow_up, "url": "?status=new", "warn": needs_follow_up > 0},
+        {"label": "Waiting on guest", "hint": "We replied, guest has not",
+         "value": Enquiry.objects.filter(status=Enquiry.Status.PENDING_GUEST).count(),
+         "url": "?status=pending_guest", "warn": False},
+        {"label": "Received today", "hint": "Since midnight",
+         "value": Enquiry.objects.filter(created_at__date=timezone.localdate()).count(),
+         "url": "", "warn": False},
+    ]
+
+    attention = list(new.select_related("campaign").order_by("created_at")[:5])
+    for e in attention:
+        e.is_overdue = e.created_at < now - timedelta(hours=24)
+
+    activity = list(
+        StatusChange.objects.select_related("enquiry", "changed_by").order_by("-changed_at")[:6]
+    )
+    for c in activity:
+        c.to_label = labels.get(c.to_status, c.to_status)
+        c.who = c.changed_by.get_full_name() or c.changed_by.username if c.changed_by else "System"
+
     context = {
         "role": user_role(request.user),
         "nav": "home",
-        "total_enquiries": Enquiry.objects.count(),
-        "new_enquiries": Enquiry.objects.filter(status=Enquiry.Status.NEW).count(),
+        "total_enquiries": total,
+        "tiles": tiles,
+        "attention": attention,
+        "activity": activity,
     }
     return render(request, "staff/home.html", context)
