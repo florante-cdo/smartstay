@@ -4,6 +4,7 @@ from django.urls import path
 
 from core import staff_views
 from core.views import enquiry_thanks, landing
+from enquiries import views as enquiry_views
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -17,4 +18,5 @@ urlpatterns = [
     ),
     path("staff/logout/", LogoutView.as_view(), name="staff_logout"),
     path("staff/", staff_views.staff_home, name="staff_home"),
+    path("staff/inbox/", enquiry_views.inbox, name="staff_inbox"),
 ]

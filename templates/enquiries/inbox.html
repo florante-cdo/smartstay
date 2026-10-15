@@ -1,0 +1,97 @@
+{% extends "staff/base_staff.html" %}
+
+{% block title %}Inbox · Starwood Gardens{% endblock %}
+
+{% block staff_content %}
+<div class="flex flex-wrap items-end justify-between gap-4">
+  <div>
+    <h1 class="font-display text-3xl font-semibold">Enquiry inbox</h1>
+    <p class="mt-1 text-garden-900/70">
+      {{ page.paginator.count }} enquir{{ page.paginator.count|pluralize:"y,ies" }}{% if status or source or query %} matching your filters{% endif %}
+    </p>
+  </div>
+
+  <form method="get" class="flex flex-wrap items-center gap-2">
+    {% if status %}<input type="hidden" name="status" value="{{ status }}">{% endif %}
+    <input type="search" name="q" value="{{ query }}" placeholder="Search name, phone or reference"
+           class="w-64 rounded-md border border-garden-900/20 bg-white px-3 py-2 text-sm focus:border-garden-600 focus:outline-none focus:ring-2 focus:ring-garden-600/30">
+    <select name="source"
+            class="rounded-md border border-garden-900/20 bg-white px-3 py-2 text-sm focus:border-garden-600 focus:outline-none">
+      <option value="">All sources</option>
+      {% for value, label in source_options %}
+      <option value="{{ value }}" {% if value == source %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit" class="rounded-md bg-garden-700 px-4 py-2 text-sm font-semibold text-white hover:bg-garden-900">Filter</button>
+    {% if status or source or query %}
+    <a href="{% url 'staff_inbox' %}" class="text-sm font-medium text-garden-600 hover:text-garden-900">Clear</a>
+    {% endif %}
+  </form>
+</div>
+
+<div class="mt-6 flex flex-wrap gap-2">
+  {% for value, label, count in status_tabs %}
+  <a href="?{% if value %}status={{ value }}&{% endif %}{% if source %}source={{ source }}&{% endif %}{% if query %}q={{ query|urlencode }}{% endif %}"
+     class="rounded-full px-3 py-1 text-sm font-medium ring-1 {% if value == status %}bg-garden-700 text-white ring-garden-700{% else %}bg-white text-garden-900 ring-garden-900/15 hover:bg-garden-100{% endif %}">
+    {{ label }} <span class="opacity-70">{{ count }}</span>
+  </a>
+  {% endfor %}
+</div>
+
+<div class="mt-4 overflow-x-auto rounded-lg bg-white ring-1 ring-garden-900/10">
+  <table class="min-w-full text-left text-sm">
+    <thead class="border-b border-garden-900/10 bg-garden-50 text-xs uppercase tracking-wide text-garden-900/70">
+      <tr>
+        <th class="px-4 py-3">Reference</th>
+        <th class="px-4 py-3">Guest</th>
+        <th class="px-4 py-3">Stay</th>
+        <th class="px-4 py-3">Source</th>
+        <th class="px-4 py-3">Status</th>
+        <th class="px-4 py-3">Received</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-garden-900/10">
+      {% for row in rows %}
+      <tr class="hover:bg-garden-50">
+        <td class="whitespace-nowrap px-4 py-3 font-medium">{{ row.reference }}</td>
+        <td class="px-4 py-3">
+          {{ row.guest_name }}
+          <div class="text-xs text-garden-900/60">{{ row.phone }}</div>
+        </td>
+        <td class="whitespace-nowrap px-4 py-3">
+          {{ row.requested_check_in|date:"d M" }} – {{ row.requested_check_out|date:"d M" }}
+          <div class="text-xs text-garden-900/60">{{ row.guest_count }} guest{{ row.guest_count|pluralize }}</div>
+        </td>
+        <td class="px-4 py-3">
+          {{ row.source_label }}
+          {% if row.campaign %}<div class="text-xs text-garden-900/60">{{ row.campaign.name }}</div>{% endif %}
+        </td>
+        <td class="px-4 py-3">
+          <span class="rounded-full px-2.5 py-0.5 text-xs font-medium {{ row.badge }}">{{ row.get_status_display }}</span>
+          {% if row.needs_follow_up %}<div class="mt-1 text-xs font-medium text-red-700">Needs follow-up</div>{% endif %}
+        </td>
+        <td class="whitespace-nowrap px-4 py-3">{{ row.created_at|date:"d M, H:i" }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="6" class="px-4 py-10 text-center text-garden-900/60">No enquiries match these filters.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% if page.paginator.num_pages > 1 %}
+<div class="mt-4 flex items-center justify-between text-sm">
+  <span class="text-garden-900/70">Page {{ page.number }} of {{ page.paginator.num_pages }}</span>
+  <div class="flex gap-2">
+    {% if page.has_previous %}
+    <a href="?{{ base_query }}{% if base_query %}&{% endif %}page={{ page.previous_page_number }}"
+       class="rounded-md bg-white px-3 py-1.5 font-medium ring-1 ring-garden-900/15 hover:bg-garden-100">Previous</a>
+    {% endif %}
+    {% if page.has_next %}
+    <a href="?{{ base_query }}{% if base_query %}&{% endif %}page={{ page.next_page_number }}"
+       class="rounded-md bg-white px-3 py-1.5 font-medium ring-1 ring-garden-900/15 hover:bg-garden-100">Next</a>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+{% endblock %}

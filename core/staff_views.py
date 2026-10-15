@@ -11,6 +11,7 @@ from .permissions import role_required, user_role
 def staff_home(request):
     context = {
         "role": user_role(request.user),
+        "nav": "home",
         "total_enquiries": Enquiry.objects.count(),
         "new_enquiries": Enquiry.objects.filter(status=Enquiry.Status.NEW).count(),
     }
