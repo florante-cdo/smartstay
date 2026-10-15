@@ -1,16 +1,10 @@
 {% extends "base.html" %}
 
-{% block footer %}{% endblock %}
-
-{% block content %}
+{% block head_extra %}
 <style>
   html { scrollbar-gutter: stable; }
-  @view-transition { navigation: auto; }
-  ::view-transition-old(root), ::view-transition-new(root) { animation-duration: .22s; animation-timing-function: ease; }
   aside { view-transition-name: staff-sidebar; }
-  @media (prefers-reduced-motion: reduce) {
-    ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
-  }
+  ::view-transition-old(root), ::view-transition-new(root) { animation-duration: .18s; animation-timing-function: ease; }
   #nav-progress {
     position: fixed; inset: 0 0 auto 0; height: 3px; z-index: 50;
     width: 0; opacity: 0; background: #2f6b4f; pointer-events: none;
@@ -23,14 +17,60 @@
   #staff-main { transition: opacity .2s ease; }
   #staff-main.is-loading { opacity: .55; transition: opacity .2s ease .15s; pointer-events: none; }
   @media (prefers-reduced-motion: reduce) {
-    #nav-progress.is-loading { transition: none; }
-    #staff-main, #staff-main.is-loading { transition: none; }
+    #nav-progress.is-loading, #staff-main, #staff-main.is-loading { transition: none; }
+    ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
   }
 </style>
+<script src="https://unpkg.com/htmx.org@2.0.4"></script>
+<script>
+  (function () {
+    if (window.__staffNav) return;
+    window.__staffNav = true;
 
+    function bar() { return document.getElementById("nav-progress"); }
+    function main() { return document.getElementById("staff-main"); }
+    function start() {
+      if (bar()) bar().classList.add("is-loading");
+      if (main()) main().classList.add("is-loading");
+    }
+    function stop() {
+      if (bar()) bar().classList.remove("is-loading");
+      if (main()) main().classList.remove("is-loading");
+    }
+
+    document.addEventListener("htmx:beforeRequest", start);
+    document.addEventListener("htmx:afterSettle", stop);
+    document.addEventListener("htmx:sendError", stop);
+    document.addEventListener("htmx:historyRestore", stop);
+    window.addEventListener("pageshow", stop);
+
+    // If the reply is not a staff page (signed out, access denied, an error),
+    // let the browser load it normally instead of swapping it in.
+    document.addEventListener("htmx:beforeSwap", function (e) {
+      var xhr = e.detail.xhr;
+      if (xhr && xhr.responseText.indexOf('id="staff-shell"') === -1) {
+        e.detail.shouldSwap = false;
+        window.location.href = xhr.responseURL || window.location.href;
+      }
+    });
+  })();
+</script>
+{% endblock %}
+
+{% block demo_banner %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block content %}
 <div id="nav-progress" aria-hidden="true"></div>
 
-<div class="flex min-h-screen flex-col bg-[#f2f4ef] md:flex-row">
+<div id="staff-shell"
+     class="flex min-h-screen flex-col bg-[#f2f4ef] md:flex-row"
+     hx-boost="true"
+     hx-target="#staff-shell"
+     hx-select="#staff-shell"
+     hx-swap="outerHTML transition:true show:window:top"
+     hx-push-url="true">
+
   <aside class="bg-garden-900 text-garden-100 md:sticky md:top-0 md:flex md:h-screen md:w-64 md:shrink-0 md:flex-col md:justify-between md:overflow-y-auto">
     <div>
       <a href="{% url 'staff_home' %}" class="block px-5 py-5">
@@ -75,7 +115,7 @@
     <div class="hidden md:block">
       <div class="mx-3 mb-3 space-y-2 border-t border-white/10 px-2 pt-4 text-sm">
         <p class="text-garden-100/70">{% now "l, j F" %}</p>
-        <a href="/promo/" target="_blank" rel="noopener" class="block font-medium text-garden-100 hover:text-white">Open the guest page</a>
+        <a href="/promo/" target="_blank" rel="noopener" hx-boost="false" class="block font-medium text-garden-100 hover:text-white">Open the guest page</a>
         {% if demo_mode %}
         <p class="rounded-md bg-white/5 px-3 py-2 text-xs leading-relaxed text-garden-100/70">Sample data. No live availability or payments.</p>
         {% endif %}
@@ -87,7 +127,7 @@
         <p class="truncate font-medium text-white">{{ request.user.get_full_name|default:request.user.username }}</p>
         <p class="capitalize text-garden-100/70">{{ role }}</p>
       </div>
-      <form method="post" action="{% url 'staff_logout' %}">
+      <form method="post" action="{% url 'staff_logout' %}" hx-boost="false">
         {% csrf_token %}
         <button type="submit" class="rounded-md px-2.5 py-1.5 font-medium text-garden-100 hover:bg-white/10 hover:text-white">Sign out</button>
       </form>
@@ -96,29 +136,11 @@
 
   <main id="staff-main" class="min-w-0 flex-1 px-5 py-8 md:px-10">
     <div class="mx-auto max-w-5xl">
+      {% if demo_mode %}
+      <p class="mb-4 rounded-md bg-amber-100 px-3 py-2 text-xs text-amber-900 md:hidden">Sample data. No live availability or payments.</p>
+      {% endif %}
       {% block staff_content %}{% endblock %}
     </div>
   </main>
 </div>
-
-<script>
-  (function () {
-    var bar = document.getElementById("nav-progress");
-    var main = document.getElementById("staff-main");
-    function start() { bar.classList.add("is-loading"); main.classList.add("is-loading"); }
-    function stop() { bar.classList.remove("is-loading"); main.classList.remove("is-loading"); }
-
-    document.addEventListener("click", function (e) {
-      var a = e.target.closest("a[href]");
-      if (!a || e.defaultPrevented || e.button !== 0) return;
-      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-      if (a.target && a.target !== "_self") return;
-      if (a.hasAttribute("download") || a.origin !== location.origin) return;
-      if (a.pathname === location.pathname && a.search === location.search) return;
-      start();
-    });
-    document.addEventListener("submit", function (e) { if (!e.defaultPrevented) start(); });
-    window.addEventListener("pageshow", stop);
-  })();
-</script>
 {% endblock %}
