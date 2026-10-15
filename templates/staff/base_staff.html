@@ -3,20 +3,79 @@
 {% block footer %}{% endblock %}
 
 {% block content %}
+<style>
+  html { scrollbar-gutter: stable; }
+  #nav-progress {
+    position: fixed; inset: 0 0 auto 0; height: 3px; z-index: 50;
+    width: 0; opacity: 0; background: #2f6b4f; pointer-events: none;
+    transition: opacity .2s ease;
+  }
+  #nav-progress.is-loading {
+    width: 85%; opacity: 1;
+    transition: width 8s cubic-bezier(.1, .7, .3, 1), opacity .1s ease .1s;
+  }
+  #staff-main { transition: opacity .2s ease; }
+  #staff-main.is-loading { opacity: .55; transition: opacity .2s ease .15s; pointer-events: none; }
+  @media (prefers-reduced-motion: reduce) {
+    #nav-progress.is-loading { transition: none; }
+    #staff-main, #staff-main.is-loading { transition: none; }
+  }
+</style>
+
+<div id="nav-progress" aria-hidden="true"></div>
+
 <div class="flex min-h-screen flex-col bg-[#f2f4ef] md:flex-row">
-  <aside class="bg-garden-900 text-garden-100 md:sticky md:top-0 md:flex md:h-screen md:w-60 md:shrink-0 md:flex-col md:justify-between">
+  <aside class="bg-garden-900 text-garden-100 md:sticky md:top-0 md:flex md:h-screen md:w-64 md:shrink-0 md:flex-col md:justify-between md:overflow-y-auto">
     <div>
       <a href="{% url 'staff_home' %}" class="block px-5 py-5">
         <span class="block font-display text-xl font-semibold text-white">Starwood Gardens</span>
         <span class="block text-sm text-garden-100/70">Staff area</span>
       </a>
-      <nav class="flex gap-1 overflow-x-auto px-3 pb-3 md:flex-col md:pb-0" aria-label="Staff navigation">
+
+      <nav class="flex items-center gap-1 overflow-x-auto px-3 pb-3 md:flex-col md:items-stretch md:gap-0.5 md:pb-0" aria-label="Staff navigation">
+        <p class="hidden px-3 pb-1 pt-2 text-xs font-medium text-garden-100/50 md:block">Work</p>
+
         <a href="{% url 'staff_home' %}"
-           class="whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium {% if nav == 'home' %}bg-white/10 text-white{% else %}text-garden-100/80 hover:bg-white/5 hover:text-white{% endif %}">Overview</a>
+           class="flex items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium {% if nav == 'home' %}bg-white/10 text-white{% else %}text-garden-100/80 hover:bg-white/5 hover:text-white{% endif %}">Overview</a>
+
         <a href="{% url 'staff_inbox' %}"
-           class="whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium {% if nav == 'inbox' %}bg-white/10 text-white{% else %}text-garden-100/80 hover:bg-white/5 hover:text-white{% endif %}">Enquiries</a>
+           class="flex items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium {% if nav == 'inbox' and status != 'new' %}bg-white/10 text-white{% else %}text-garden-100/80 hover:bg-white/5 hover:text-white{% endif %}">All enquiries</a>
+
+        <a href="{% url 'staff_inbox' %}?status=new"
+           class="flex items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium {% if nav == 'inbox' and status == 'new' %}bg-white/10 text-white{% else %}text-garden-100/80 hover:bg-white/5 hover:text-white{% endif %}">
+          New enquiries
+          {% if nav_new_count %}<span class="ml-auto rounded-full bg-amber-400 px-2 py-0.5 text-xs font-semibold tabular-nums text-garden-900">{{ nav_new_count }}</span>{% endif %}
+        </a>
+
+        <span class="flex cursor-default items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium text-garden-100/40" title="Built in a later step">
+          Reservations
+          <span class="ml-auto rounded bg-white/10 px-1.5 py-0.5 text-[11px] font-normal text-garden-100/70">Soon</span>
+        </span>
+
+        {% if role == "manager" %}
+        <p class="hidden px-3 pb-1 pt-4 text-xs font-medium text-garden-100/50 md:block">Manager</p>
+        <span class="flex cursor-default items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium text-garden-100/40" title="Built in a later step">
+          Campaign links
+          <span class="ml-auto rounded bg-white/10 px-1.5 py-0.5 text-[11px] font-normal text-garden-100/70">Soon</span>
+        </span>
+        <span class="flex cursor-default items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium text-garden-100/40" title="Built in a later step">
+          Dashboard
+          <span class="ml-auto rounded bg-white/10 px-1.5 py-0.5 text-[11px] font-normal text-garden-100/70">Soon</span>
+        </span>
+        {% endif %}
       </nav>
     </div>
+
+    <div class="hidden md:block">
+      <div class="mx-3 mb-3 space-y-2 border-t border-white/10 px-2 pt-4 text-sm">
+        <p class="text-garden-100/70">{% now "l, j F" %}</p>
+        <a href="/promo/" target="_blank" rel="noopener" class="block font-medium text-garden-100 hover:text-white">Open the guest page</a>
+        {% if demo_mode %}
+        <p class="rounded-md bg-white/5 px-3 py-2 text-xs leading-relaxed text-garden-100/70">Sample data. No live availability or payments.</p>
+        {% endif %}
+      </div>
+    </div>
+
     <div class="flex items-center justify-between gap-3 border-t border-white/10 px-5 py-3 text-sm">
       <div class="min-w-0">
         <p class="truncate font-medium text-white">{{ request.user.get_full_name|default:request.user.username }}</p>
@@ -29,10 +88,31 @@
     </div>
   </aside>
 
-  <main class="min-w-0 flex-1 px-5 py-8 md:px-10">
+  <main id="staff-main" class="min-w-0 flex-1 px-5 py-8 md:px-10">
     <div class="mx-auto max-w-5xl">
       {% block staff_content %}{% endblock %}
     </div>
   </main>
 </div>
+
+<script>
+  (function () {
+    var bar = document.getElementById("nav-progress");
+    var main = document.getElementById("staff-main");
+    function start() { bar.classList.add("is-loading"); main.classList.add("is-loading"); }
+    function stop() { bar.classList.remove("is-loading"); main.classList.remove("is-loading"); }
+
+    document.addEventListener("click", function (e) {
+      var a = e.target.closest("a[href]");
+      if (!a || e.defaultPrevented || e.button !== 0) return;
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      if (a.target && a.target !== "_self") return;
+      if (a.hasAttribute("download") || a.origin !== location.origin) return;
+      if (a.pathname === location.pathname && a.search === location.search) return;
+      start();
+    });
+    document.addEventListener("submit", function (e) { if (!e.defaultPrevented) start(); });
+    window.addEventListener("pageshow", stop);
+  })();
+</script>
 {% endblock %}
