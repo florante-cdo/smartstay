@@ -15,4 +15,7 @@ def staff_nav(request):
     return {
         "nav_new_count": Enquiry.objects.filter(status=Enquiry.Status.NEW).count(),
         "nav_pending_count": Reservation.objects.filter(status="pending").count(),
+        "nav_mine_count": Enquiry.objects.filter(assigned_to=request.user)
+        .exclude(status__in=["confirmed", "not_converted", "cancelled"])
+        .count(),
     }

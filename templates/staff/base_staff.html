@@ -109,10 +109,16 @@
            class="flex items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium {% if nav == 'home' %}bg-white/10 text-white{% else %}text-garden-100/80 hover:bg-white/5 hover:text-white{% endif %}">Overview</a>
 
         <a href="{% url 'staff_inbox' %}"
-           class="flex items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium {% if nav == 'inbox' and status != 'new' %}bg-white/10 text-white{% else %}text-garden-100/80 hover:bg-white/5 hover:text-white{% endif %}">All enquiries</a>
+           class="flex items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium {% if nav == 'inbox' and status != 'new' and assigned != 'me' %}bg-white/10 text-white{% else %}text-garden-100/80 hover:bg-white/5 hover:text-white{% endif %}">All enquiries</a>
+
+        <a href="{% url 'staff_inbox' %}?assigned=me"
+           class="flex items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium {% if nav == 'inbox' and assigned == 'me' %}bg-white/10 text-white{% else %}text-garden-100/80 hover:bg-white/5 hover:text-white{% endif %}">
+          My enquiries
+          {% if nav_mine_count %}<span class="ml-auto rounded-full bg-white/15 px-2 py-0.5 text-xs font-semibold tabular-nums text-white">{{ nav_mine_count }}</span>{% endif %}
+        </a>
 
         <a href="{% url 'staff_inbox' %}?status=new"
-           class="flex items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium {% if nav == 'inbox' and status == 'new' %}bg-white/10 text-white{% else %}text-garden-100/80 hover:bg-white/5 hover:text-white{% endif %}">
+           class="flex items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium {% if nav == 'inbox' and status == 'new' and assigned != 'me' %}bg-white/10 text-white{% else %}text-garden-100/80 hover:bg-white/5 hover:text-white{% endif %}">
           New enquiries
           {% if nav_new_count %}<span class="ml-auto rounded-full bg-amber-400 px-2 py-0.5 text-xs font-semibold tabular-nums text-garden-900">{{ nav_new_count }}</span>{% endif %}
         </a>

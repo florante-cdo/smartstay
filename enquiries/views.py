@@ -29,6 +29,7 @@ def inbox(request):
     status = request.GET.get("status", "")
     source = request.GET.get("source", "")
     query = request.GET.get("q", "").strip()
+    assigned = "me" if request.GET.get("assigned") == "me" else ""
 
     enquiries = Enquiry.objects.select_related("campaign", "room_type", "assigned_to")
     if status in Enquiry.Status.values:
@@ -37,6 +38,8 @@ def inbox(request):
         status = ""
     if source:
         enquiries = enquiries.filter(source=source)
+    if assigned:
+        enquiries = enquiries.filter(assigned_to=request.user)
     if query:
         enquiries = enquiries.filter(
             Q(guest_name__icontains=query)
@@ -57,7 +60,8 @@ def inbox(request):
             row.status == Enquiry.Status.NEW and row.created_at < overdue_before
         )
 
-    counts = dict(Enquiry.objects.values_list("status").annotate(n=Count("id")))
+    scope = Enquiry.objects.filter(assigned_to=request.user) if assigned else Enquiry.objects.all()
+    counts = dict(scope.values_list("status").annotate(n=Count("id")))
     status_tabs = [("", "All", sum(counts.values()))] + [
         (value, label, counts.get(value, 0)) for value, label in Enquiry.Status.choices
     ]
@@ -78,6 +82,7 @@ def inbox(request):
         "ellipsis": Paginator.ELLIPSIS,
         "status": status,
         "source": source,
+        "assigned": assigned,
         "query": query,
         "status_tabs": status_tabs,
         "source_options": source_options,

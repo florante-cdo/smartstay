@@ -5,7 +5,7 @@
 {% block staff_content %}
 <div class="flex flex-wrap items-end justify-between gap-4">
   <div>
-    <h1 class="font-display text-3xl font-semibold tracking-tight">Enquiries</h1>
+    <h1 class="font-display text-3xl font-semibold tracking-tight">{% if assigned %}My enquiries{% else %}Enquiries{% endif %}</h1>
     <p class="mt-1 text-sm text-garden-900/70">
       {% if page.paginator.count %}
       Showing {{ page.start_index }} to {{ page.end_index }} of {{ page.paginator.count }}
@@ -17,6 +17,7 @@
 
   <form method="get" class="flex flex-wrap items-center gap-2">
     {% if status %}<input type="hidden" name="status" value="{{ status }}">{% endif %}
+    {% if assigned %}<input type="hidden" name="assigned" value="me">{% endif %}
     <input type="search" name="q" value="{{ query }}" placeholder="Search name, phone or reference"
            class="w-full rounded-md border border-garden-900/20 bg-white px-3 py-2 text-sm placeholder:text-garden-900/40 focus:border-garden-600 focus:outline-none focus:ring-2 focus:ring-garden-600/30 sm:w-64">
     <select name="source" onchange="this.form.requestSubmit()"
@@ -27,7 +28,7 @@
       {% endfor %}
     </select>
     <button type="submit" class="rounded-md bg-garden-700 px-4 py-2 text-sm font-semibold text-white hover:bg-garden-900">Search</button>
-    {% if status or source or query %}
+    {% if status or source or query or assigned %}
     <a href="{% url 'staff_inbox' %}" class="text-sm font-medium text-garden-600 hover:text-garden-900">Clear filters</a>
     {% endif %}
   </form>
@@ -35,7 +36,7 @@
 
 <div class="mt-6 flex gap-1 overflow-x-auto border-b border-garden-900/15">
   {% for value, label, count in status_tabs %}
-  <a href="?{% if value %}status={{ value }}&{% endif %}{% if source %}source={{ source }}&{% endif %}{% if query %}q={{ query|urlencode }}{% endif %}"
+  <a href="?{% if assigned %}assigned=me&{% endif %}{% if value %}status={{ value }}&{% endif %}{% if source %}source={{ source }}&{% endif %}{% if query %}q={{ query|urlencode }}{% endif %}"
      class="-mb-px whitespace-nowrap border-b-2 px-3 py-2 text-sm font-medium {% if value == status %}border-garden-700 text-garden-900{% else %}border-transparent text-garden-900/60 hover:border-garden-900/30 hover:text-garden-900{% endif %}">
     {{ label }} <span class="ml-1 tabular-nums text-garden-900/50">{{ count }}</span>
   </a>
@@ -62,6 +63,7 @@
           <p class="mt-0.5 flex flex-wrap gap-x-3 text-xs text-garden-900/60">
             <span class="tabular-nums">{{ row.reference }}</span>
             <span class="tabular-nums">{{ row.phone }}</span>
+            {% if row.assigned_to_id == request.user.id %}<span class="font-medium text-garden-700">Yours</span>{% elif row.assigned_to %}<span>{{ row.assigned_to.get_full_name|default:row.assigned_to.username }}</span>{% endif %}
           </p>
           <p class="mt-1 text-xs text-garden-900/70 md:hidden">
             {{ row.requested_check_in|date:"d M" }} to {{ row.requested_check_out|date:"d M" }}, {{ row.guest_count }} guest{{ row.guest_count|pluralize }}

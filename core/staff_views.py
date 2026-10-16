@@ -27,9 +27,10 @@ def staff_home(request):
         {"label": "Waiting on guest", "hint": "We replied, guest has not",
          "value": Enquiry.objects.filter(status=Enquiry.Status.PENDING_GUEST).count(),
          "url": "?status=pending_guest", "warn": False},
-        {"label": "Received today", "hint": "Since midnight",
-         "value": Enquiry.objects.filter(created_at__date=timezone.localdate()).count(),
-         "url": "", "warn": False},
+        {"label": "Assigned to me", "hint": "Open enquiries you own",
+         "value": Enquiry.objects.filter(assigned_to=request.user)
+         .exclude(status__in=["confirmed", "not_converted", "cancelled"]).count(),
+         "url": "?assigned=me", "warn": False},
     ]
 
     attention = list(new.select_related("campaign").order_by("created_at")[:5])
