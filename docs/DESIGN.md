@@ -144,6 +144,22 @@ privately for 15 seconds.
 
 Sample rows are flagged `is_sample`. References are `SG-0001` style. Times use Africa/Nairobi.
 
+## 8. Project structure
+
+```
+config/        settings, root URLs
+core/          room types, landing and staff home, roles, campaign gate, seed and reset commands, tests
+campaigns/     campaign model, forms, list, QR code
+enquiries/     enquiry model, workflow rules, services, inbox, detail, staff entry
+reservations/  reservation model, services, list and decisions
+dashboard/     JSON API for Campaign performance
+templates/     all pages (base, staff, enquiries, reservations, campaigns, core, dashboard)
+static/        compiled CSS (static/css/tailwind.css) and its source (static/src)
+docs/          this document and the demo script
+```
+
+Business rules live in `services.py` and `workflow.py`, not in views, so they are testable on their own.
+
 ## 9. Setup
 
 ```bash
