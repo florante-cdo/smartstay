@@ -61,6 +61,8 @@ Say: a pending reservation is never counted as confirmed.
   guest mentioned. It appears in the performance tab under that campaign.
 - **Untracked traffic.** Open `/promo/` with no tags, then `/promo/?utm_campaign=typo`. Direct
   and unknown traffic are kept separate and never credited to a campaign.
+- **Staff access.** As Manager, open Staff and add a Reception member. Assign them an enquiry,
+  then deactivate them: they are signed out at once and the enquiry returns to unassigned.
 - **Big group.** Enter 13 guests on the guest form to show the "call us for groups" message.
 
 ## After the demo

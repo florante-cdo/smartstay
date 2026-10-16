@@ -21,6 +21,7 @@ sample data. A pending reservation is never counted as confirmed.
 | Pending reservation | Reception requests a room for the guest, with capacity and date checks | Reservations |
 | Manager decision | Only the Manager confirms, declines or cancels | Reservations |
 | Campaign results | Enquiries, confirmed bookings, conversion, funnel and trend per campaign | Overview, Campaign performance |
+| Staff access | Manager adds staff, sets roles and deactivates leavers; everyone keeps a profile | Staff, My profile |
 
 ## 2. Stack
 
@@ -32,7 +33,7 @@ sample data. A pending reservation is never counted as confirmed.
 | Front end | Server-rendered templates, HTMX 2.0.4, Tailwind 3.4.17 (compiled) | No React; fast, simple, easy to hand over |
 | Charts | HTML bars plus ApexCharts for the trend line | Every chart has a table view |
 | Static files | WhiteNoise | One process serves the site and its assets |
-| Tests | Django test runner, 55 tests | Rules are checked, not assumed |
+| Tests | Django test runner, 77 tests | Rules are checked, not assumed |
 
 ## 3. Roles
 
@@ -40,7 +41,7 @@ sample data. A pending reservation is never counted as confirmed.
 |---|---|
 | Guest (anonymous) | View the landing page, submit an enquiry |
 | Reception | Work enquiries, log phone and walk-in enquiries, request reservations |
-| Manager | Everything Reception does, plus confirm, decline or cancel reservations, manage campaigns, see Campaign performance, assign enquiries to others |
+| Manager | Everything Reception does, plus confirm, decline or cancel reservations, manage campaigns, see Campaign performance, assign enquiries to others, add and deactivate staff accounts |
 | Superuser | Django admin only |
 
 Roles are Django groups named `Reception` and `Manager`. Pages are protected by a
@@ -121,6 +122,10 @@ Every change writes a history row (who, when, from, to, why).
 | `/staff/campaigns/<id>/quick/` | staff_campaign_quick | Manager | Side panel with link and QR |
 | `/staff/campaigns/<id>/qr.svg` | staff_campaign_qr | Manager | QR code (`?download=1` to save) |
 | `/staff/dashboard/` | staff_dashboard | Manager | Redirects to the performance tab |
+| `/staff/profile/` | staff_profile | Staff | Own details and password |
+| `/staff/team/` | staff_team | Manager | Staff list with role, workload and status |
+| `/staff/team/new/` | staff_team_new | Manager | Add a staff member |
+| `/staff/team/<id>/` | staff_team_member | Manager | Role, new password, deactivate or reactivate |
 | `/api/v1/dashboard/` | api_dashboard | Manager | JSON for the performance tab |
 
 ### API
@@ -140,6 +145,7 @@ privately for 15 seconds.
 | `enquiries_enquiry` | Guest details, stay request, status, campaign, source, medium, raw campaign code, entry channel, owner |
 | `enquiries_enquirynote` | Staff notes with an optional next follow-up time |
 | `enquiries_statuschange` | Audit trail of every status change |
+| `core_staffprofile` | Phone and job title for each staff member |
 | `reservations_reservation` | A room request tied to one enquiry, with dates, guests and status |
 
 Sample rows are flagged `is_sample`. References are `SG-0001` style. Times use Africa/Nairobi.
@@ -148,7 +154,7 @@ Sample rows are flagged `is_sample`. References are `SG-0001` style. Times use A
 
 ```
 config/        settings, root URLs
-core/          room types, landing and staff home, roles, campaign gate, seed and reset commands, tests
+core/          room types, landing and staff home, roles, campaign gate, seed and reset commands, profile and staff-account pages, tests
 campaigns/     campaign model, forms, list, QR code
 enquiries/     enquiry model, workflow rules, services, inbox, detail, staff entry
 reservations/  reservation model, services, list and decisions
@@ -178,7 +184,7 @@ Demo logins: `reception` and `manager`, password `demo12345`.
 |---|---|
 | `python manage.py reset_demo --yes` | Wipe demo leftovers and restore clean sample data (needs `DEMO_MODE`) |
 | `python manage.py expire_campaigns` | Switch off campaigns past their end date (scheduled backup) |
-| `python manage.py test core` | Run the 55 tests |
+| `python manage.py test core` | Run the 77 tests |
 | `npm run watch` | Rebuild CSS while editing templates |
 
 Settings read from the environment include `SITE_URL` (used in campaign links and QR codes) and
@@ -192,10 +198,10 @@ Settings read from the environment include `SITE_URL` (used in campaign links an
 
 ## 10. Tests
 
-55 automated tests cover: status transitions and required reasons; the attribution rules above;
+77 automated tests cover: status transitions and required reasons; the attribution rules above;
 reservation lifecycle and Manager-only decisions; staff-entered enquiries; role access to pages and
 the API; campaign expiry and the offer-ended page; the online group cap (12); friendly error pages;
-compiled-CSS checks; and the demo reset.
+compiled-CSS checks; the profile page; staff accounts (add, role, deactivate, and the protections for yourself and the last Manager); and the demo reset.
 
 ## 11. Known limitations
 
@@ -204,6 +210,9 @@ compiled-CSS checks; and the demo reset.
 - Fonts load from Google Fonts, so the pages need internet access (self-host for offline use).
 - Online enquiries are capped at 12 guests; larger groups are asked to call.
 - A campaign start date is not modelled (campaigns have an end date only).
+- Staff accounts have no email step: the Manager sets a starting password and tells the person in
+  person. There is no email invite or self-service password reset.
+- Deactivating a person keeps their notes and history; accounts are never deleted.
 
 ## 12. Open questions for the hotel
 
@@ -216,3 +225,5 @@ compiled-CSS checks; and the demo reset.
 4. **Campaign start dates.** Do campaigns need a start date as well as an end date?
 5. **Group bookings.** Is 12 the right online limit, and which number should the message show?
 6. **Real inventory and payment.** Which system holds true availability, and is online payment wanted?
+7. **Account security.** Should production use email invites, self-service password reset and
+   two-factor sign-in for Managers?
