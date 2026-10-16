@@ -1,3 +1,5 @@
+from dashboard import views as dashboard_views
+from dashboard import api as dashboard_api
 from campaigns import views as campaign_views
 from reservations import views as reservation_views
 from enquiries.views import enquiry_detail, enquiry_quick
@@ -23,6 +25,8 @@ urlpatterns = [
     path("staff/", staff_views.staff_home, name="staff_home"),
     path("staff/inbox/", enquiry_views.inbox, name="staff_inbox"),
     path("staff/enquiries/<int:pk>/", enquiry_detail, name="staff_enquiry"),
+    path("staff/dashboard/", dashboard_views.dashboard, name="staff_dashboard"),
+    path("api/v1/dashboard/", dashboard_api.dashboard_summary, name="api_dashboard"),
     path("staff/campaigns/", campaign_views.campaign_list, name="staff_campaigns"),
     path("staff/campaigns/new/", campaign_views.campaign_create, name="staff_campaign_new"),
     path("staff/campaigns/<int:pk>/edit/", campaign_views.campaign_edit, name="staff_campaign_edit"),

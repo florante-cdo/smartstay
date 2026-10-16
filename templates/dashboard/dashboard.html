@@ -1,0 +1,457 @@
+{% extends "staff/base_staff.html" %}
+
+{% block title %}Dashboard · Starwood Gardens{% endblock %}
+
+{% block staff_content %}
+<style>
+  #dash-body { transition: opacity .15s ease; }
+  #dash-body.is-loading { opacity: .6; }
+  .rng[aria-pressed="true"], .vt[aria-pressed="true"] { background: #dcebe2; color: #142e22; }
+  .rng:hover:not([aria-pressed="true"]), .vt:hover:not([aria-pressed="true"]) { background: #f1f6f3; }
+  .seg:hover { filter: brightness(1.1); }
+  @media (prefers-reduced-motion: reduce) { #dash-body { transition: none; } }
+</style>
+
+<div id="dash" data-url="{% url 'api_dashboard' %}" data-key="{{ key }}">
+  <h1 class="font-display text-3xl font-semibold tracking-tight">Dashboard</h1>
+  <p class="mt-1 max-w-2xl text-sm text-garden-900/70">
+    Which campaigns brought enquiries, and how many became confirmed reservations. Every figure counts the enquiries received in the chosen period. Sample data.
+  </p>
+
+  <div class="mt-6 flex flex-wrap items-center gap-3">
+    <div class="inline-flex flex-wrap gap-1 rounded-md border border-garden-900/15 bg-white p-1 text-sm" role="group" aria-label="Date range">
+      {% for k, label in periods %}
+      <button type="button" data-key="{{ k }}" aria-pressed="{% if k == key %}true{% else %}false{% endif %}"
+              class="rng rounded px-3 py-1.5 font-medium text-garden-900/80">{{ label }}</button>
+      {% endfor %}
+    </div>
+    <p id="dash-range" class="text-sm text-garden-900/60"></p>
+  </div>
+
+  <p id="dash-error" class="mt-4 hidden rounded-md bg-red-50 px-3 py-2 text-sm text-red-800">
+    The dashboard data could not be loaded. Reload the page to try again.
+  </p>
+
+  <div id="dash-body" class="mt-4 space-y-6">
+    <div id="tiles" class="grid grid-cols-2 gap-3 lg:grid-cols-4"></div>
+
+    <section class="rounded-lg border border-garden-900/10 bg-white p-5" data-card="campaign">
+      <div class="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 class="text-sm font-semibold">Enquiries by campaign</h2>
+          <p class="text-xs text-garden-900/60">The dark part of each bar became a confirmed reservation.</p>
+        </div>
+        <div class="inline-flex rounded-md border border-garden-900/15 p-0.5 text-xs" role="group" aria-label="View">
+          <button type="button" data-view="chart" aria-pressed="true" class="vt rounded px-2.5 py-1 font-medium">Chart</button>
+          <button type="button" data-view="table" aria-pressed="false" class="vt rounded px-2.5 py-1 font-medium">Table</button>
+        </div>
+      </div>
+      <div id="campaign-body" class="mt-4"></div>
+    </section>
+
+    <div class="grid gap-6 lg:grid-cols-2">
+      <section class="rounded-lg border border-garden-900/10 bg-white p-5" data-card="funnel">
+        <div class="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 class="text-sm font-semibold">From enquiry to confirmed</h2>
+            <p class="text-xs text-garden-900/60">How far enquiries got, step by step.</p>
+          </div>
+          <div class="inline-flex rounded-md border border-garden-900/15 p-0.5 text-xs" role="group" aria-label="View">
+            <button type="button" data-view="chart" aria-pressed="true" class="vt rounded px-2.5 py-1 font-medium">Chart</button>
+            <button type="button" data-view="table" aria-pressed="false" class="vt rounded px-2.5 py-1 font-medium">Table</button>
+          </div>
+        </div>
+        <div id="funnel-body" class="mt-4"></div>
+      </section>
+
+      <section class="rounded-lg border border-garden-900/10 bg-white p-5" data-card="trend">
+        <div class="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 class="text-sm font-semibold">Enquiries per day</h2>
+            <p class="text-xs text-garden-900/60">New enquiries received each day.</p>
+          </div>
+          <div class="inline-flex rounded-md border border-garden-900/15 p-0.5 text-xs" role="group" aria-label="View">
+            <button type="button" data-view="chart" aria-pressed="true" class="vt rounded px-2.5 py-1 font-medium">Chart</button>
+            <button type="button" data-view="table" aria-pressed="false" class="vt rounded px-2.5 py-1 font-medium">Table</button>
+          </div>
+        </div>
+        <div id="trend-body" class="mt-4"></div>
+      </section>
+    </div>
+  </div>
+</div>
+
+{% verbatim %}
+<script>
+(function () {
+  var root = document.getElementById("dash");
+  if (!root) return;
+
+  var C = {
+    accent: "#2f6b4f", light: "#86bd9f",
+    ramp: ["#86bd9f", "#4f9370", "#2f6b4f", "#174230"],
+    ink: "#142e22", ink2: "#4b5d53", muted: "#7a8780", grid: "#e5e9e4"
+  };
+  var state = { key: root.dataset.key, data: null, apex: null, renderId: 0, seq: 0,
+                view: { campaign: "chart", funnel: "chart", trend: "chart" } };
+
+  function $(id) { return document.getElementById(id); }
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  }
+  function fmt(n) { return Number(n).toLocaleString("en-US"); }
+  function pct(x) { return x == null ? "n/a" : (Math.round(x * 1000) / 10) + "%"; }
+  function shortDate(iso) { return new Date(iso + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short" }); }
+  function longDate(iso) { return new Date(iso + "T00:00:00").toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" }); }
+  function empty(msg) { return el("p", "py-8 text-center text-sm text-garden-900/60", msg); }
+
+  /* ---------- one shared tooltip ---------- */
+  var oldTip = $("dash-tip");
+  if (oldTip) oldTip.remove();
+  var tip = el("div", "pointer-events-none fixed z-[60] hidden max-w-xs rounded-md border border-garden-900/10 bg-white px-3 py-2 text-sm shadow-lg");
+  tip.id = "dash-tip";
+  document.body.appendChild(tip);
+
+  function fillTip(title, rows) {
+    tip.textContent = "";
+    tip.appendChild(el("p", "text-xs text-garden-900/60", title));
+    rows.forEach(function (r) {
+      var line = el("p", "mt-1 flex items-center gap-2");
+      if (r.color) {
+        var key = el("span", "inline-block h-[3px] w-3 shrink-0 rounded-full");
+        key.style.background = r.color;
+        line.appendChild(key);
+      }
+      line.appendChild(el("strong", "font-semibold text-garden-900", r.value));
+      line.appendChild(el("span", "text-garden-900/70", r.label));
+      tip.appendChild(line);
+    });
+  }
+  function placeTip(x, y) {
+    tip.classList.remove("hidden");
+    var w = tip.offsetWidth, h = tip.offsetHeight;
+    var left = Math.max(8, Math.min(x + 14, window.innerWidth - w - 8));
+    var top = (y + 16 + h > window.innerHeight) ? y - h - 12 : y + 16;
+    tip.style.left = left + "px";
+    tip.style.top = Math.max(8, top) + "px";
+  }
+  function hideTip() { tip.classList.add("hidden"); }
+  function bindTip(node, title, rows) {
+    node.tabIndex = 0;
+    node.addEventListener("pointerenter", function () { fillTip(title, rows); });
+    node.addEventListener("pointermove", function (e) { placeTip(e.clientX, e.clientY); });
+    node.addEventListener("pointerleave", hideTip);
+    node.addEventListener("focus", function () {
+      fillTip(title, rows);
+      var r = node.getBoundingClientRect();
+      placeTip(r.left + 48, r.bottom - 6);
+    });
+    node.addEventListener("blur", hideTip);
+  }
+
+  /* ---------- horizontal bar row (plain HTML) ---------- */
+  function barRow(o) {
+    var row = el("div", "grid grid-cols-[7.5rem_1fr] items-center gap-3 rounded-md py-1.5 outline-none hover:bg-garden-50 focus-visible:ring-2 focus-visible:ring-garden-600 sm:grid-cols-[11rem_1fr]");
+    var name = el("div", "min-w-0 pl-1");
+    name.appendChild(el("p", "truncate text-sm font-medium", o.label));
+    if (o.sub) name.appendChild(el("p", "truncate text-xs text-garden-900/60", o.sub));
+    row.appendChild(name);
+
+    var total = o.segments.reduce(function (s, x) { return s + x.value; }, 0);
+    var track = el("div", "flex items-center gap-2 pr-1");
+    var bar = el("div", "flex h-6 shrink-0 gap-[2px]");
+    bar.style.width = "calc((100% - 3rem) * " + (o.max ? total / o.max : 0) + ")";
+    bar.style.minWidth = total > 0 ? "4px" : "0";
+    var shown = o.segments.filter(function (s) { return s.value > 0; });
+    shown.forEach(function (s, i) {
+      var seg = el("div", "seg");
+      seg.style.flex = s.value + " 1 0";
+      seg.style.background = s.color;
+      if (i === shown.length - 1) seg.style.borderRadius = "0 4px 4px 0";
+      bar.appendChild(seg);
+    });
+    track.appendChild(bar);
+    track.appendChild(el("span", "text-sm font-semibold", o.text));
+    row.appendChild(track);
+    bindTip(row, o.tipTitle, o.tipRows);
+    return row;
+  }
+
+  /* ---------- table view ---------- */
+  function table(headers, rows, numeric) {
+    var wrap = el("div", "max-h-80 overflow-auto");
+    var t = el("table", "w-full text-left text-sm");
+    var thead = el("thead", "sticky top-0 bg-white text-xs text-garden-900/60");
+    var hr = el("tr", "border-b border-garden-900/10");
+    headers.forEach(function (h, i) {
+      hr.appendChild(el("th", "px-2 py-2 font-medium" + (numeric.indexOf(i) > -1 ? " text-right" : ""), h));
+    });
+    thead.appendChild(hr);
+    t.appendChild(thead);
+    var tb = el("tbody", "divide-y divide-garden-900/10");
+    rows.forEach(function (r) {
+      var tr = el("tr");
+      r.forEach(function (c, i) {
+        tr.appendChild(el("td", "px-2 py-2" + (numeric.indexOf(i) > -1 ? " text-right tabular-nums" : ""), c));
+      });
+      tb.appendChild(tr);
+    });
+    t.appendChild(tb);
+    wrap.appendChild(t);
+    return wrap;
+  }
+
+  /* ---------- tiles ---------- */
+  function delta(cur, prev, label) {
+    if (prev == null) return null;
+    if (prev === 0) return cur === 0 ? "No change vs " + label : "Up from none in the " + label;
+    var change = Math.round((cur - prev) / prev * 100);
+    if (change === 0) return "No change vs " + label;
+    return (change > 0 ? "Up " : "Down ") + Math.abs(change) + "% vs " + label;
+  }
+  function renderTiles(d) {
+    var wrap = $("tiles");
+    wrap.textContent = "";
+    var p = d.previous;
+    var tiles = [
+      { label: "Enquiries", value: fmt(d.kpis.enquiries),
+        note: delta(d.kpis.enquiries, p && p.enquiries, p && p.label) || "Received in this period" },
+      { label: "Confirmed reservations", value: fmt(d.kpis.confirmed),
+        note: delta(d.kpis.confirmed, p && p.confirmed, p && p.label) || "From those enquiries" },
+      { label: "Confirmed share", value: pct(d.kpis.conversion), note: "Confirmed out of enquiries received" },
+      { label: "Still waiting for a reply", value: fmt(d.kpis.waiting), note: "Enquiries still marked New" }
+    ];
+    tiles.forEach(function (t) {
+      var box = el("div", "rounded-lg border border-garden-900/10 bg-white p-4");
+      box.appendChild(el("p", "text-sm font-medium", t.label));
+      box.appendChild(el("p", "mt-1 text-3xl font-semibold", t.value));
+      box.appendChild(el("p", "mt-1 text-xs text-garden-900/60", t.note));
+      wrap.appendChild(box);
+    });
+  }
+
+  /* ---------- campaign card ---------- */
+  function renderCampaign() {
+    var body = $("campaign-body");
+    body.textContent = "";
+    var rows = state.data.by_campaign;
+    if (!rows.length) { body.appendChild(empty("No enquiries in this period.")); return; }
+
+    if (state.view.campaign === "table") {
+      body.appendChild(table(
+        ["Campaign", "Source", "Enquiries", "Confirmed", "Confirmed share"],
+        rows.map(function (r) { return [r.label, r.detail, fmt(r.enquiries), fmt(r.confirmed), pct(r.rate)]; }),
+        [2, 3, 4]
+      ));
+      return;
+    }
+
+    var legend = el("div", "mb-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-garden-900/70");
+    [[C.accent, "Confirmed reservations"], [C.light, "Other enquiries"]].forEach(function (k) {
+      var item = el("span", "inline-flex items-center gap-1.5");
+      var sw = el("span", "inline-block h-2.5 w-2.5 rounded-sm");
+      sw.style.background = k[0];
+      item.appendChild(sw);
+      item.appendChild(document.createTextNode(k[1]));
+      legend.appendChild(item);
+    });
+    body.appendChild(legend);
+
+    var max = Math.max.apply(null, rows.map(function (r) { return r.enquiries; }));
+    rows.forEach(function (r) {
+      body.appendChild(barRow({
+        label: r.label,
+        sub: r.confirmed + " confirmed",
+        segments: [{ value: r.confirmed, color: C.accent }, { value: r.enquiries - r.confirmed, color: C.light }],
+        max: max,
+        text: fmt(r.enquiries),
+        tipTitle: r.label + (r.detail ? ", " + r.detail : ""),
+        tipRows: [
+          { color: C.accent, value: fmt(r.confirmed), label: "confirmed reservations" },
+          { color: C.light, value: fmt(r.enquiries - r.confirmed), label: "other enquiries" },
+          { value: pct(r.rate), label: "of its enquiries confirmed" }
+        ]
+      }));
+    });
+  }
+
+  /* ---------- funnel card ---------- */
+  function renderFunnel() {
+    var body = $("funnel-body");
+    body.textContent = "";
+    var f = state.data.funnel, first = f[0].count;
+    if (!first) { body.appendChild(empty("No enquiries in this period.")); return; }
+
+    function ofFirst(i) { return pct(f[i].count / first); }
+    function ofPrev(i) { return i === 0 ? "n/a" : pct(f[i - 1].count ? f[i].count / f[i - 1].count : null); }
+
+    if (state.view.funnel === "table") {
+      body.appendChild(table(
+        ["Step", "Enquiries", "Of received", "Of previous step"],
+        f.map(function (s, i) { return [s.stage, fmt(s.count), ofFirst(i), ofPrev(i)]; }),
+        [1, 2, 3]
+      ));
+      return;
+    }
+    f.forEach(function (s, i) {
+      body.appendChild(barRow({
+        label: s.stage,
+        sub: ofFirst(i),
+        segments: [{ value: s.count, color: C.ramp[i] }],
+        max: first,
+        text: fmt(s.count),
+        tipTitle: s.stage,
+        tipRows: [
+          { color: C.ramp[i], value: fmt(s.count), label: "enquiries" },
+          { value: ofFirst(i), label: "of those received" },
+          { value: ofPrev(i), label: "of the previous step" }
+        ]
+      }));
+    });
+  }
+
+  /* ---------- trend card (ApexCharts, loaded when first needed) ---------- */
+  var queue = window.__apexQueue || (window.__apexQueue = []);
+  function withApex(cb, onFail) {
+    if (window.ApexCharts) { cb(); return; }
+    queue.push({ ok: cb, fail: onFail });
+    if (window.__apexLoading) return;
+    window.__apexLoading = true;
+    var s = document.createElement("script");
+    s.src = "https://cdn.jsdelivr.net/npm/apexcharts@3.54.1/dist/apexcharts.min.js";
+    s.onload = function () { queue.splice(0).forEach(function (q) { q.ok(); }); };
+    s.onerror = function () { window.__apexLoading = false; queue.splice(0).forEach(function (q) { q.fail(); }); };
+    document.head.appendChild(s);
+  }
+
+  function renderTrend() {
+    var body = $("trend-body");
+    body.textContent = "";
+    if (state.apex) { try { state.apex.destroy(); } catch (e) {} state.apex = null; }
+    var pts = state.data.trend;
+    var total = pts.reduce(function (s, p) { return s + p.count; }, 0);
+    if (!total) { body.appendChild(empty("No enquiries in this period.")); return; }
+
+    if (state.view.trend === "table") {
+      body.appendChild(table(
+        ["Date", "Enquiries"],
+        pts.slice().reverse().map(function (p) { return [longDate(p.date), fmt(p.count)]; }),
+        [1]
+      ));
+      return;
+    }
+
+    var holder = el("div");
+    holder.setAttribute("role", "img");
+    holder.setAttribute("aria-label", "Line chart of enquiries per day. Use the Table view for exact values.");
+    body.appendChild(holder);
+    var id = state.renderId;
+
+    withApex(function () {
+      if (id !== state.renderId || !document.body.contains(holder)) return;
+      var last = pts[pts.length - 1];
+      var lastX = Date.parse(last.date + "T00:00:00");
+      var maxVal = Math.max.apply(null, pts.map(function (p) { return p.count; }));
+      var yMax = Math.max(4, Math.ceil(maxVal / 4) * 4);
+
+      state.apex = new ApexCharts(holder, {
+        chart: { type: "area", height: 260, fontFamily: "inherit", toolbar: { show: false },
+                 zoom: { enabled: false }, animations: { enabled: false }, parentHeightOffset: 0, foreColor: C.muted },
+        series: [{ name: "Enquiries", data: pts.map(function (p) { return [Date.parse(p.date + "T00:00:00"), p.count]; }) }],
+        colors: [C.accent],
+        stroke: { width: 2, curve: "straight", lineCap: "round" },
+        fill: { type: "solid", opacity: 0.1 },
+        dataLabels: { enabled: false },
+        markers: { size: 0, strokeWidth: 2, strokeColors: "#ffffff", hover: { size: 5 } },
+        grid: { borderColor: C.grid, strokeDashArray: 0, padding: { left: 8, right: 16 }, xaxis: { lines: { show: false } } },
+        xaxis: { type: "datetime", tickAmount: Math.min(6, Math.max(1, pts.length - 1)),
+                 labels: { datetimeUTC: false, format: "d MMM", style: { colors: C.muted } },
+                 axisBorder: { color: C.grid }, axisTicks: { show: false }, tooltip: { enabled: false },
+                 crosshairs: { stroke: { color: "#c3cbc6", width: 1, dashArray: 0 } } },
+        yaxis: { min: 0, max: yMax, tickAmount: 4,
+                 labels: { formatter: function (v) { return String(Math.round(v)); }, style: { colors: C.muted } } },
+        legend: { show: false },
+        annotations: { points: [{ x: lastX, y: last.count,
+          marker: { size: 5, fillColor: C.accent, strokeColor: "#ffffff", strokeWidth: 2 },
+          label: { text: String(last.count), borderWidth: 0, offsetY: -2,
+                   style: { color: C.ink, background: "transparent", fontSize: "12px", fontWeight: 600 } } }] },
+        tooltip: { shared: true, intersect: false,
+          custom: function (o) {
+            var ts = o.w.globals.seriesX[o.seriesIndex][o.dataPointIndex];
+            var v = o.series[o.seriesIndex][o.dataPointIndex];
+            var when = new Date(ts).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
+            return '<div style="padding:8px 12px;font-size:14px;line-height:1.3">' +
+              '<div style="font-size:12px;color:' + C.ink2 + '">' + when + '</div>' +
+              '<div style="display:flex;align-items:center;gap:8px;margin-top:4px">' +
+              '<span style="display:inline-block;width:12px;height:3px;border-radius:2px;background:' + C.accent + '"></span>' +
+              '<strong style="color:' + C.ink + '">' + v + '</strong><span style="color:' + C.ink2 + '">enquiries</span></div></div>';
+          } }
+      });
+      state.apex.render();
+    }, function () {
+      body.textContent = "";
+      body.appendChild(empty("The chart could not load. Use the Table view instead."));
+    });
+  }
+
+  /* ---------- wiring ---------- */
+  function renderCard(name) {
+    if (!state.data) return;
+    if (name === "campaign") renderCampaign();
+    else if (name === "funnel") renderFunnel();
+    else renderTrend();
+  }
+  function render() {
+    state.renderId++;
+    var d = state.data;
+    $("dash-range").textContent = "Enquiries received " + shortDate(d.period.from) + " to " + shortDate(d.period.to);
+    renderTiles(d);
+    renderCampaign();
+    renderFunnel();
+    renderTrend();
+  }
+
+  function load() {
+    var mine = ++state.seq;
+    var body = $("dash-body");
+    body.classList.add("is-loading");
+    fetch(root.dataset.url + "?days=" + encodeURIComponent(state.key), {
+      credentials: "same-origin", headers: { Accept: "application/json" }
+    })
+      .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+      .then(function (d) {
+        if (mine !== state.seq) return;
+        $("dash-error").classList.add("hidden");
+        state.data = d;
+        render();
+      })
+      .catch(function () { if (mine === state.seq) $("dash-error").classList.remove("hidden"); })
+      .then(function () { if (mine === state.seq) body.classList.remove("is-loading"); });
+  }
+
+  root.addEventListener("click", function (e) {
+    var vt = e.target.closest(".vt");
+    if (vt) {
+      var card = vt.closest("[data-card]").dataset.card;
+      state.view[card] = vt.dataset.view;
+      vt.parentNode.querySelectorAll(".vt").forEach(function (b) { b.setAttribute("aria-pressed", String(b === vt)); });
+      renderCard(card);
+      return;
+    }
+    var rng = e.target.closest(".rng");
+    if (rng && rng.dataset.key !== state.key) {
+      state.key = rng.dataset.key;
+      root.querySelectorAll(".rng").forEach(function (b) { b.setAttribute("aria-pressed", String(b === rng)); });
+      history.replaceState(null, "", "?days=" + state.key);
+      load();
+    }
+  });
+
+  load();
+})();
+</script>
+{% endverbatim %}
+{% endblock %}

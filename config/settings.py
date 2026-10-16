@@ -154,3 +154,9 @@ LOGOUT_REDIRECT_URL = "staff_login"
 
 # Public address used in campaign links and QR codes. Set SITE_URL in .env when hosted.
 SITE_URL = env("SITE_URL", default="http://127.0.0.1:8000").rstrip("/")
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": ["rest_framework.authentication.SessionAuthentication"],
+    "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],
+    "DEFAULT_RENDERER_CLASSES": ["rest_framework.renderers.JSONRenderer"],
+}
