@@ -1,0 +1,17 @@
+{
+  "name": "smartstay",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tailwindcss -c tailwind.config.js -i static/src/input.css -o static/css/tailwind.css --minify",
+    "watch": "tailwindcss -c tailwind.config.js -i static/src/input.css -o static/css/tailwind.css --watch"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "tailwindcss": "3.4.17"
+  }
+}
