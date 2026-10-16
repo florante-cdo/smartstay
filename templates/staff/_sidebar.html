@@ -61,6 +61,11 @@
         <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>
         <span class="sb-label">Campaign links</span>
       </a>
+      <a href="{% url 'staff_team' %}" title="Staff"
+         class="relative flex items-center gap-3 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium {% if nav == 'team' %}bg-white/10 text-white{% else %}text-garden-100/80 hover:bg-white/5 hover:text-white{% endif %}">
+        <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span class="sb-label">Staff</span>
+      </a>
       {% endif %}
     </nav>
   </div>

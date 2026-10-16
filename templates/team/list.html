@@ -1,0 +1,46 @@
+{% extends "staff/base_staff.html" %}
+
+{% block title %}Staff · Starwood Gardens{% endblock %}
+
+{% block staff_content %}
+<div class="flex flex-wrap items-end justify-between gap-3">
+  <div>
+    <h1 class="font-display text-3xl font-semibold tracking-tight">Staff</h1>
+    <p class="mt-1 text-sm text-garden-900/70">People who can sign in to this system.</p>
+  </div>
+  <a href="{% url 'staff_team_new' %}" class="rounded-md bg-garden-700 px-4 py-2 text-sm font-semibold text-white hover:bg-garden-900">Add staff member</a>
+</div>
+
+<div class="mt-6 overflow-x-auto rounded-lg border border-garden-900/10 bg-white">
+  <table class="w-full text-left text-sm">
+    <thead class="border-b border-garden-900/10 text-garden-900/60">
+      <tr>
+        <th class="px-4 py-3 font-medium">Name</th>
+        <th class="px-4 py-3 font-medium">Role</th>
+        <th class="px-4 py-3 font-medium">Open enquiries</th>
+        <th class="px-4 py-3 font-medium">Last sign-in</th>
+        <th class="px-4 py-3 font-medium">Status</th>
+        <th class="px-4 py-3"><span class="sr-only">View</span></th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-garden-900/10">
+      {% for m in members %}
+      <tr class="{% if not m.is_active %}text-garden-900/50{% endif %}">
+        <td class="px-4 py-3">
+          <p class="font-medium">{{ m.get_full_name|default:m.username }}</p>
+          <p class="text-xs text-garden-900/60">{{ m.username }}</p>
+        </td>
+        <td class="px-4 py-3 capitalize">{{ m.role_name }}</td>
+        <td class="px-4 py-3 tabular-nums">{{ m.open_count }}</td>
+        <td class="px-4 py-3">{{ m.last_login|date:"j M, H:i"|default:"Never" }}</td>
+        <td class="px-4 py-3">
+          {% if m.is_active %}<span class="rounded-full bg-garden-100 px-2.5 py-0.5 text-xs font-medium text-garden-900">Active</span>
+          {% else %}<span class="rounded-full bg-stone-200 px-2.5 py-0.5 text-xs font-medium text-stone-700">Inactive</span>{% endif %}
+        </td>
+        <td class="px-4 py-3 text-right"><a href="{% url 'staff_team_member' m.pk %}" class="font-medium text-garden-600 hover:text-garden-900">View</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
