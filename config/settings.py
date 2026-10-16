@@ -151,3 +151,6 @@ MAILERS = {
 LOGIN_URL = "staff_login"
 LOGIN_REDIRECT_URL = "staff_home"
 LOGOUT_REDIRECT_URL = "staff_login"
+
+# Public address used in campaign links and QR codes. Set SITE_URL in .env when hosted.
+SITE_URL = env("SITE_URL", default="http://127.0.0.1:8000").rstrip("/")

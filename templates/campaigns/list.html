@@ -1,0 +1,54 @@
+{% extends "staff/base_staff.html" %}
+
+{% block title %}Campaign links · Starwood Gardens{% endblock %}
+
+{% block staff_content %}
+<div class="flex flex-wrap items-end justify-between gap-4">
+  <div>
+    <h1 class="font-display text-3xl font-semibold tracking-tight">Campaign links</h1>
+    <p class="mt-1 text-sm text-garden-900/70">Each campaign gets its own link and QR code, so every enquiry can be traced back to where it came from.</p>
+  </div>
+  <a href="{% url 'staff_campaign_new' %}" class="rounded-md bg-garden-700 px-4 py-2 text-sm font-semibold text-white hover:bg-garden-900">New campaign</a>
+</div>
+
+<div class="mt-6 overflow-hidden rounded-lg border border-garden-900/10 bg-white">
+  <table class="w-full text-left text-sm">
+    <thead class="border-b border-garden-900/10 bg-garden-50/60 text-xs text-garden-900/60">
+      <tr>
+        <th class="px-4 py-3 font-medium">Campaign</th>
+        <th class="hidden px-4 py-3 font-medium md:table-cell">Where it runs</th>
+        <th class="px-4 py-3 text-right font-medium">Enquiries</th>
+        <th class="hidden px-4 py-3 text-right font-medium md:table-cell">Confirmed</th>
+        <th class="hidden px-4 py-3 font-medium sm:table-cell">Status</th>
+        <th class="px-4 py-3 text-right font-medium"><span class="sr-only">Actions</span></th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-garden-900/10">
+      {% for c in rows %}
+      <tr class="hover:bg-garden-50/60">
+        <td class="px-4 py-3">
+          <p class="font-semibold">{{ c.name }}</p>
+          <p class="mt-0.5 text-xs text-garden-900/60">{{ c.code }}</p>
+        </td>
+        <td class="hidden px-4 py-3 md:table-cell">{{ c.get_source_display }}<p class="text-xs text-garden-900/60">{{ c.get_medium_display }}</p></td>
+        <td class="px-4 py-3 text-right font-medium tabular-nums">{{ c.enquiry_total }}</td>
+        <td class="hidden px-4 py-3 text-right font-medium tabular-nums md:table-cell">{{ c.confirmed_total }}</td>
+        <td class="hidden px-4 py-3 sm:table-cell">
+          <span class="inline-flex items-center gap-2 whitespace-nowrap"><span class="h-2 w-2 rounded-full {% if c.is_active %}bg-emerald-600{% else %}bg-stone-400{% endif %}"></span>{% if c.is_active %}Active{% else %}Paused{% endif %}</span>
+        </td>
+        <td class="whitespace-nowrap px-4 py-3 text-right">
+          <a href="{% url 'staff_campaign_edit' c.pk %}" class="mr-2 text-sm font-medium text-garden-600 hover:text-garden-900">Edit</a>
+          {% url 'staff_campaign_quick' c.pk as quick_url %}{% include "staff/_view_button.html" with url=quick_url name=c.name %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="6" class="px-4 py-12 text-center">
+        <p class="font-medium">No campaigns yet</p>
+        <p class="mt-1 text-sm text-garden-900/60">Create one to get a tracked link and QR code.</p>
+      </td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% include "staff/_pagination.html" %}
+</div>
+{% endblock %}

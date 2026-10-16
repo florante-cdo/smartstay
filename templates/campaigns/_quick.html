@@ -1,0 +1,57 @@
+<div class="flex h-full flex-col">
+  <div class="flex items-start justify-between gap-4 border-b border-garden-900/10 px-6 py-5">
+    <div class="min-w-0">
+      <h2 class="font-display text-2xl font-semibold tracking-tight">{{ c.name }}</h2>
+      <p class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-garden-900/70">
+        <span>{{ c.get_source_display }}, {{ c.get_medium_display }}</span>
+        <span class="inline-flex items-center gap-2 font-medium text-garden-900"><span class="h-2 w-2 rounded-full {% if c.is_active %}bg-emerald-600{% else %}bg-stone-400{% endif %}"></span>{% if c.is_active %}Active{% else %}Paused{% endif %}</span>
+      </p>
+    </div>
+    <button type="button" onclick="document.getElementById('quick-view').close()"
+            class="rounded-md px-2.5 py-1.5 text-sm font-medium text-garden-900/70 hover:bg-garden-100">Close</button>
+  </div>
+
+  <div class="flex-1 space-y-5 overflow-y-auto px-6 py-5 text-sm">
+    <dl class="grid grid-cols-2 gap-4">
+      <div><dt class="text-xs text-garden-900/60">Enquiries</dt><dd class="mt-0.5 font-display text-2xl font-semibold tabular-nums">{{ enquiry_total }}</dd></div>
+      <div><dt class="text-xs text-garden-900/60">Confirmed reservations</dt><dd class="mt-0.5 font-display text-2xl font-semibold tabular-nums">{{ confirmed_total }}</dd></div>
+    </dl>
+
+    <div>
+      <label for="qv-link" class="text-xs text-garden-900/60">Tracked link</label>
+      <input id="qv-link" type="text" readonly value="{{ full_url }}" onfocus="this.select()"
+             class="mt-1 w-full rounded-md border border-garden-900/20 bg-garden-50 px-3 py-2 text-xs">
+      <div class="mt-2 flex gap-2">
+        <button type="button" data-url="{{ full_url }}"
+                onclick="var b=this;navigator.clipboard.writeText(b.dataset.url).then(function(){b.textContent='Copied';setTimeout(function(){b.textContent='Copy link'},1500)})"
+                class="rounded-md bg-garden-700 px-3 py-1.5 text-sm font-semibold text-white hover:bg-garden-900">Copy link</button>
+        <a href="{{ full_url }}" target="_blank" rel="noopener" hx-boost="false"
+           class="rounded-md border border-garden-900/20 px-3 py-1.5 text-sm font-semibold hover:bg-garden-50">Test the link</a>
+      </div>
+    </div>
+
+    <div>
+      <p class="text-xs text-garden-900/60">QR code</p>
+      <img src="{% url 'staff_campaign_qr' c.pk %}" alt="QR code for {{ c.name }}"
+           class="mt-1 h-48 w-48 rounded-md border border-garden-900/10 bg-white">
+      <a href="{% url 'staff_campaign_qr' c.pk %}?download=1" hx-boost="false"
+         class="mt-2 inline-block text-sm font-medium text-garden-600 hover:text-garden-900">Download QR code</a>
+    </div>
+
+    {% if c.headline or c.offer_text %}
+    <div>
+      <p class="text-xs text-garden-900/60">What guests see</p>
+      {% if c.headline %}<p class="mt-0.5 font-medium">{{ c.headline }}</p>{% endif %}
+      {% if c.offer_text %}<p class="text-garden-900/80">{{ c.offer_text }}</p>{% endif %}
+    </div>
+    {% endif %}
+
+    {% if not c.is_active %}
+    <p class="rounded-md bg-amber-50 px-3 py-2 text-amber-900">This campaign is paused. Enquiries from its link are recorded as unknown.</p>
+    {% endif %}
+  </div>
+
+  <div class="border-t border-garden-900/10 px-6 py-4">
+    <a href="{% url 'staff_campaign_edit' c.pk %}" class="block rounded-md bg-garden-700 px-4 py-2 text-center text-sm font-semibold text-white hover:bg-garden-900">Edit campaign</a>
+  </div>
+</div>

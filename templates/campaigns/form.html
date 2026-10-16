@@ -1,0 +1,31 @@
+{% extends "staff/base_staff.html" %}
+
+{% block title %}{% if creating %}New campaign{% else %}Edit campaign{% endif %} · Starwood Gardens{% endblock %}
+
+{% block staff_content %}
+<a href="{% url 'staff_campaigns' %}" class="text-sm font-medium text-garden-600 hover:text-garden-900">Back to campaign links</a>
+
+<h1 class="mt-3 font-display text-3xl font-semibold tracking-tight">{% if creating %}New campaign{% else %}Edit {{ campaign.name }}{% endif %}</h1>
+<p class="mt-1 text-sm text-garden-900/70">Guests who open this campaign's link see the headline and offer you write here.</p>
+
+<form method="post" class="mt-6 max-w-xl space-y-4 rounded-lg border border-garden-900/10 bg-white p-5">
+  {% csrf_token %}
+  {% for err in form.non_field_errors %}<p class="text-sm text-red-700">{{ err }}</p>{% endfor %}
+  {% for field in form %}
+  <div>
+    {% if field.field.widget.input_type == "checkbox" %}
+    <label class="flex items-center gap-2 text-sm font-medium">{{ field }} {{ field.label }}</label>
+    {% else %}
+    <label for="{{ field.id_for_label }}" class="text-sm font-medium">{{ field.label }}</label>
+    {{ field }}
+    {% endif %}
+    {% if field.help_text %}<p class="mt-1 text-xs text-garden-900/60">{{ field.help_text }}</p>{% endif %}
+    {% for err in field.errors %}<p class="mt-1 text-sm text-red-700">{{ err }}</p>{% endfor %}
+  </div>
+  {% endfor %}
+  <div class="flex items-center gap-4 pt-2">
+    <button type="submit" class="rounded-md bg-garden-700 px-4 py-2 text-sm font-semibold text-white hover:bg-garden-900">{% if creating %}Create campaign{% else %}Save changes{% endif %}</button>
+    <a href="{% url 'staff_campaigns' %}" class="text-sm font-medium text-garden-600 hover:text-garden-900">Cancel</a>
+  </div>
+</form>
+{% endblock %}

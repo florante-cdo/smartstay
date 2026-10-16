@@ -1,3 +1,4 @@
+from campaigns import views as campaign_views
 from reservations import views as reservation_views
 from enquiries.views import enquiry_detail, enquiry_quick
 from django.contrib import admin
@@ -22,6 +23,11 @@ urlpatterns = [
     path("staff/", staff_views.staff_home, name="staff_home"),
     path("staff/inbox/", enquiry_views.inbox, name="staff_inbox"),
     path("staff/enquiries/<int:pk>/", enquiry_detail, name="staff_enquiry"),
+    path("staff/campaigns/", campaign_views.campaign_list, name="staff_campaigns"),
+    path("staff/campaigns/new/", campaign_views.campaign_create, name="staff_campaign_new"),
+    path("staff/campaigns/<int:pk>/edit/", campaign_views.campaign_edit, name="staff_campaign_edit"),
+    path("staff/campaigns/<int:pk>/quick/", campaign_views.campaign_quick, name="staff_campaign_quick"),
+    path("staff/campaigns/<int:pk>/qr.svg", campaign_views.campaign_qr, name="staff_campaign_qr"),
     path("staff/enquiries/<int:pk>/quick/", enquiry_quick, name="staff_enquiry_quick"),
     path("staff/reservations/<int:pk>/quick/", reservation_views.reservation_quick, name="staff_reservation_quick"),
     path("staff/reservations/", reservation_views.reservation_list, name="staff_reservations"),
