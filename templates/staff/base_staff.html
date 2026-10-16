@@ -7,6 +7,19 @@
   @keyframes qv-in { from { transform: translateX(24px); opacity: 0; } to { transform: none; opacity: 1; } }
   @media (prefers-reduced-motion: reduce) { #quick-view[open] { animation: none; } }
   aside { view-transition-name: staff-sidebar; }
+  .sb-mark { display: none; }
+  @media (min-width: 768px) {
+    #staff-aside { transition: width .15s ease; }
+    html.sb-collapsed #staff-aside { width: 4.5rem; }
+    html.sb-collapsed #staff-aside .sb-label { display: none; }
+    html.sb-collapsed #staff-aside .sb-mark { display: block; }
+    html.sb-collapsed #staff-aside .sb-brand { flex-direction: column; padding-left: .5rem; padding-right: .5rem; }
+    html.sb-collapsed #staff-aside nav a { justify-content: center; padding-left: 0; padding-right: 0; }
+    html.sb-collapsed #staff-aside .sb-badge { position: absolute; top: .3rem; right: .9rem; width: .5rem; height: .5rem; padding: 0; font-size: 0; }
+    html.sb-collapsed #staff-aside .sb-foot { flex-direction: column; justify-content: center; padding-left: 0; padding-right: 0; }
+    html.sb-collapsed #sb-toggle svg { transform: rotate(180deg); }
+  }
+  @media (prefers-reduced-motion: reduce) { #staff-aside { transition: none; } }
   ::view-transition-old(root), ::view-transition-new(root) { animation-duration: .18s; animation-timing-function: ease; }
   #nav-progress {
     position: fixed; inset: 0 0 auto 0; height: 3px; z-index: 50;
@@ -24,6 +37,29 @@
     ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
   }
 </style>
+<script>
+  (function () {
+    var root = document.documentElement;
+    try { if (localStorage.getItem("sb-collapsed") === "1") root.classList.add("sb-collapsed"); } catch (e) {}
+    function sync() {
+      var btn = document.getElementById("sb-toggle");
+      if (!btn) return;
+      var c = root.classList.contains("sb-collapsed");
+      btn.setAttribute("aria-expanded", c ? "false" : "true");
+      btn.setAttribute("aria-label", c ? "Expand sidebar" : "Collapse sidebar");
+      btn.title = c ? "Expand sidebar" : "Collapse sidebar";
+    }
+    document.addEventListener("click", function (e) {
+      var btn = e.target.closest && e.target.closest("#sb-toggle");
+      if (!btn) return;
+      var c = root.classList.toggle("sb-collapsed");
+      try { localStorage.setItem("sb-collapsed", c ? "1" : "0"); } catch (err) {}
+      sync();
+    });
+    document.addEventListener("htmx:afterSettle", sync);
+    document.addEventListener("DOMContentLoaded", sync);
+  })();
+</script>
 <script src="https://unpkg.com/htmx.org@2.0.4"></script>
 <script>
   (function () {
@@ -95,72 +131,7 @@
      hx-swap="outerHTML transition:true show:window:top"
      hx-push-url="true">
 
-  <aside class="bg-garden-900 text-garden-100 md:sticky md:top-0 md:flex md:h-screen md:w-64 md:shrink-0 md:flex-col md:justify-between md:overflow-y-auto">
-    <div>
-      <a href="{% url 'staff_home' %}" class="block px-5 py-5">
-        <span class="block font-display text-xl font-semibold text-white">Starwood Gardens</span>
-        <span class="block text-sm text-garden-100/70">Staff area</span>
-      </a>
-
-      <nav class="flex items-center gap-1 overflow-x-auto px-3 pb-3 md:flex-col md:items-stretch md:gap-0.5 md:pb-0" aria-label="Staff navigation">
-        <p class="hidden px-3 pb-1 pt-2 text-xs font-medium text-garden-100/50 md:block">Work</p>
-
-        <a href="{% url 'staff_home' %}"
-           class="flex items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium {% if nav == 'home' %}bg-white/10 text-white{% else %}text-garden-100/80 hover:bg-white/5 hover:text-white{% endif %}">Overview</a>
-
-        <a href="{% url 'staff_inbox' %}"
-           class="flex items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium {% if nav == 'inbox' and status != 'new' and assigned != 'me' %}bg-white/10 text-white{% else %}text-garden-100/80 hover:bg-white/5 hover:text-white{% endif %}">All enquiries</a>
-
-        <a href="{% url 'staff_inbox' %}?assigned=me"
-           class="flex items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium {% if nav == 'inbox' and assigned == 'me' %}bg-white/10 text-white{% else %}text-garden-100/80 hover:bg-white/5 hover:text-white{% endif %}">
-          My enquiries
-          {% if nav_mine_count %}<span class="ml-auto rounded-full bg-white/15 px-2 py-0.5 text-xs font-semibold tabular-nums text-white">{{ nav_mine_count }}</span>{% endif %}
-        </a>
-
-        <a href="{% url 'staff_inbox' %}?status=new"
-           class="flex items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium {% if nav == 'inbox' and status == 'new' and assigned != 'me' %}bg-white/10 text-white{% else %}text-garden-100/80 hover:bg-white/5 hover:text-white{% endif %}">
-          New enquiries
-          {% if nav_new_count %}<span class="ml-auto rounded-full bg-amber-400 px-2 py-0.5 text-xs font-semibold tabular-nums text-garden-900">{{ nav_new_count }}</span>{% endif %}
-        </a>
-
-        <a href="{% url 'staff_enquiry_new' %}"
-           class="flex items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium {% if nav == 'log' %}bg-white/10 text-white{% else %}text-garden-100/80 hover:bg-white/5 hover:text-white{% endif %}">Log an enquiry</a>
-
-        <a href="{% url 'staff_reservations' %}"
-           class="flex items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium {% if nav == 'reservations' %}bg-white/10 text-white{% else %}text-garden-100/80 hover:bg-white/5 hover:text-white{% endif %}">
-          Reservations
-          {% if nav_pending_count %}<span class="ml-auto rounded-full bg-amber-400 px-2 py-0.5 text-xs font-semibold tabular-nums text-garden-900">{{ nav_pending_count }}</span>{% endif %}
-        </a>
-
-        {% if role == "manager" %}
-        <p class="hidden px-3 pb-1 pt-4 text-xs font-medium text-garden-100/50 md:block">Manager</p>
-        <a href="{% url 'staff_campaigns' %}"
-           class="flex items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium {% if nav == 'campaigns' %}bg-white/10 text-white{% else %}text-garden-100/80 hover:bg-white/5 hover:text-white{% endif %}">Campaign links</a>
-        {% endif %}
-      </nav>
-    </div>
-
-    <div class="hidden md:block">
-      <div class="mx-3 mb-3 space-y-2 border-t border-white/10 px-2 pt-4 text-sm">
-        <p class="text-garden-100/70">{% now "l, j F" %}</p>
-        <a href="/promo/" target="_blank" rel="noopener" hx-boost="false" class="block font-medium text-garden-100 hover:text-white">Open the guest page</a>
-        {% if demo_mode %}
-        <p class="rounded-md bg-white/5 px-3 py-2 text-xs leading-relaxed text-garden-100/70">Sample data. No live availability or payments.</p>
-        {% endif %}
-      </div>
-    </div>
-
-    <div class="flex items-center justify-between gap-3 border-t border-white/10 px-5 py-3 text-sm">
-      <div class="min-w-0">
-        <p class="truncate font-medium text-white">{{ request.user.get_full_name|default:request.user.username }}</p>
-        <p class="capitalize text-garden-100/70">{{ role }}</p>
-      </div>
-      <form method="post" action="{% url 'staff_logout' %}" hx-boost="false">
-        {% csrf_token %}
-        <button type="submit" class="rounded-md px-2.5 py-1.5 font-medium text-garden-100 hover:bg-white/10 hover:text-white">Sign out</button>
-      </form>
-    </div>
-  </aside>
+  {% include "staff/_sidebar.html" %}
 
   <main id="staff-main" class="min-w-0 flex-1 px-5 py-8 md:px-10">
     <div class="mx-auto max-w-5xl">

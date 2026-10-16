@@ -1,0 +1,91 @@
+<aside id="staff-aside" class="bg-garden-900 text-garden-100 md:sticky md:top-0 md:flex md:h-screen md:w-64 md:shrink-0 md:flex-col md:justify-between md:overflow-y-auto">
+  <div>
+    <div class="sb-brand flex items-center justify-between gap-2 px-5 py-5">
+      <a href="{% url 'staff_home' %}" class="min-w-0" aria-label="Starwood Gardens staff home">
+        <span class="sb-label block font-display text-xl font-semibold text-white">Starwood Gardens</span>
+        <span class="sb-label block text-sm text-garden-100/70">Staff area</span>
+        <span class="sb-mark font-display text-xl font-semibold text-white" aria-hidden="true">SG</span>
+      </a>
+      <button id="sb-toggle" type="button" aria-expanded="true" aria-label="Collapse sidebar" title="Collapse sidebar"
+              class="hidden h-8 w-8 shrink-0 items-center justify-center rounded-md text-garden-100/80 hover:bg-white/10 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-white md:inline-flex">
+        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+      </button>
+    </div>
+
+    <nav class="flex items-center gap-1 overflow-x-auto px-3 pb-3 md:flex-col md:items-stretch md:gap-0.5 md:pb-0" aria-label="Staff navigation">
+      <p class="sb-label hidden px-3 pb-1 pt-2 text-xs font-medium text-garden-100/50 md:block">Work</p>
+
+      <a href="{% url 'staff_home' %}" title="Overview"
+         class="relative flex items-center gap-3 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium {% if nav == 'home' %}bg-white/10 text-white{% else %}text-garden-100/80 hover:bg-white/5 hover:text-white{% endif %}">
+        <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>
+        <span class="sb-label">Overview</span>
+      </a>
+
+      <a href="{% url 'staff_inbox' %}" title="All enquiries"
+         class="relative flex items-center gap-3 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium {% if nav == 'inbox' and status != 'new' and assigned != 'me' %}bg-white/10 text-white{% else %}text-garden-100/80 hover:bg-white/5 hover:text-white{% endif %}">
+        <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5.1 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.5-6.9A2 2 0 0 0 16.8 4H7.2a2 2 0 0 0-1.7 1.1z"/></svg>
+        <span class="sb-label">All enquiries</span>
+      </a>
+
+      <a href="{% url 'staff_inbox' %}?assigned=me" title="My enquiries"
+         class="relative flex items-center gap-3 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium {% if nav == 'inbox' and assigned == 'me' %}bg-white/10 text-white{% else %}text-garden-100/80 hover:bg-white/5 hover:text-white{% endif %}">
+        <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+        <span class="sb-label">My enquiries</span>
+        {% if nav_mine_count %}<span class="sb-badge ml-auto rounded-full bg-white/15 px-2 py-0.5 text-xs font-semibold tabular-nums text-white">{{ nav_mine_count }}</span>{% endif %}
+      </a>
+
+      <a href="{% url 'staff_inbox' %}?status=new" title="New enquiries"
+         class="relative flex items-center gap-3 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium {% if nav == 'inbox' and status == 'new' and assigned != 'me' %}bg-white/10 text-white{% else %}text-garden-100/80 hover:bg-white/5 hover:text-white{% endif %}">
+        <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+        <span class="sb-label">New enquiries</span>
+        {% if nav_new_count %}<span class="sb-badge ml-auto rounded-full bg-amber-400 px-2 py-0.5 text-xs font-semibold tabular-nums text-garden-900">{{ nav_new_count }}</span>{% endif %}
+      </a>
+
+      <a href="{% url 'staff_enquiry_new' %}" title="Log an enquiry"
+         class="relative flex items-center gap-3 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium {% if nav == 'log' %}bg-white/10 text-white{% else %}text-garden-100/80 hover:bg-white/5 hover:text-white{% endif %}">
+        <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
+        <span class="sb-label">Log an enquiry</span>
+      </a>
+
+      <a href="{% url 'staff_reservations' %}" title="Reservations"
+         class="relative flex items-center gap-3 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium {% if nav == 'reservations' %}bg-white/10 text-white{% else %}text-garden-100/80 hover:bg-white/5 hover:text-white{% endif %}">
+        <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        <span class="sb-label">Reservations</span>
+        {% if nav_pending_count %}<span class="sb-badge ml-auto rounded-full bg-amber-400 px-2 py-0.5 text-xs font-semibold tabular-nums text-garden-900">{{ nav_pending_count }}</span>{% endif %}
+      </a>
+
+      {% if role == "manager" %}
+      <p class="sb-label hidden px-3 pb-1 pt-4 text-xs font-medium text-garden-100/50 md:block">Manager</p>
+      <a href="{% url 'staff_campaigns' %}" title="Campaign links"
+         class="relative flex items-center gap-3 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium {% if nav == 'campaigns' %}bg-white/10 text-white{% else %}text-garden-100/80 hover:bg-white/5 hover:text-white{% endif %}">
+        <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>
+        <span class="sb-label">Campaign links</span>
+      </a>
+      {% endif %}
+    </nav>
+  </div>
+
+  <div class="sb-label hidden md:block">
+    <div class="mx-3 mb-3 space-y-2 border-t border-white/10 px-2 pt-4 text-sm">
+      <p class="text-garden-100/70">{% now "l, j F" %}</p>
+      <a href="/promo/" target="_blank" rel="noopener" hx-boost="false" class="block font-medium text-garden-100 hover:text-white">Open the guest page</a>
+      {% if demo_mode %}
+      <p class="rounded-md bg-white/5 px-3 py-2 text-xs leading-relaxed text-garden-100/70">Sample data. No live availability or payments.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="sb-foot flex items-center justify-between gap-3 border-t border-white/10 px-5 py-3 text-sm">
+    <div class="sb-label min-w-0">
+      <p class="truncate font-medium text-white">{{ request.user.get_full_name|default:request.user.username }}</p>
+      <p class="capitalize text-garden-100/70">{{ role }}</p>
+    </div>
+    <form method="post" action="{% url 'staff_logout' %}" hx-boost="false">
+      {% csrf_token %}
+      <button type="submit" title="Sign out" class="flex items-center gap-2 rounded-md px-2.5 py-1.5 font-medium text-garden-100 hover:bg-white/10 hover:text-white">
+        <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5M21 12H9"/></svg>
+        <span class="sb-label">Sign out</span>
+      </button>
+    </form>
+  </div>
+</aside>
