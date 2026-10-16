@@ -8,6 +8,10 @@
   @media (prefers-reduced-motion: reduce) { #quick-view[open] { animation: none; } }
   aside { view-transition-name: staff-sidebar; }
   .sb-mark { display: none; }
+  @keyframes toast-in { from { transform: translateY(-8px); opacity: 0; } to { transform: none; opacity: 1; } }
+  .toast { animation: toast-in .2s ease-out; }
+  .toast.is-leaving { opacity: 0; transform: translateY(-8px); transition: opacity .2s ease, transform .2s ease; }
+  @media (prefers-reduced-motion: reduce) { .toast { animation: none; } .toast.is-leaving { transition: none; } }
   @media (min-width: 768px) {
     #staff-aside { transition: width .15s ease; }
     html.sb-collapsed #staff-aside { width: 4.5rem; }
@@ -58,6 +62,37 @@
     });
     document.addEventListener("htmx:afterSettle", sync);
     document.addEventListener("DOMContentLoaded", sync);
+  })();
+</script>
+<script>
+  (function () {
+    function arm(toast) {
+      if (toast.dataset.armed) return;
+      toast.dataset.armed = "1";
+      function dismiss() {
+        toast.classList.add("is-leaving");
+        setTimeout(function () { toast.remove(); }, 220);
+      }
+      var close = toast.querySelector("[data-toast-close]");
+      if (close) close.addEventListener("click", dismiss);
+      if (toast.dataset.level === "error") return; // errors stay until closed
+      var timer;
+      function start() { timer = setTimeout(dismiss, 5000); }
+      function stop() { clearTimeout(timer); }
+      toast.addEventListener("mouseenter", stop);
+      toast.addEventListener("mouseleave", start);
+      toast.addEventListener("focusin", stop);
+      toast.addEventListener("focusout", start);
+      start();
+    }
+    function scan() { document.querySelectorAll("[data-toast]").forEach(arm); }
+    document.addEventListener("DOMContentLoaded", scan);
+    document.addEventListener("htmx:afterSettle", scan);
+    window.addEventListener("pageshow", scan);
+    // Never let the Back button replay a toast that was already shown.
+    document.addEventListener("htmx:beforeHistorySave", function () {
+      document.querySelectorAll("#toasts [data-toast]").forEach(function (n) { n.remove(); });
+    });
   })();
 </script>
 <script src="https://unpkg.com/htmx.org@2.0.4"></script>
@@ -138,10 +173,27 @@
       {% if demo_mode %}
       <p class="mb-4 rounded-md bg-amber-100 px-3 py-2 text-xs text-amber-900 md:hidden">Sample data. No live availability or payments.</p>
       {% endif %}
-      {% if messages %}<div class="mb-4 space-y-2" role="status">{% for m in messages %}<p class="rounded-md px-3 py-2 text-sm font-medium {% if m.level_tag == 'error' %}bg-red-100 text-red-900{% else %}bg-garden-100 text-garden-900{% endif %}">{{ m }}</p>{% endfor %}</div>{% endif %}
       {% block staff_content %}{% endblock %}
     </div>
   </main>
+
+  <div id="toasts" class="pointer-events-none fixed inset-x-4 top-4 z-[60] flex flex-col gap-2 sm:inset-x-auto sm:right-4 sm:w-96" aria-live="polite">
+    {% for m in messages %}
+    <div data-toast data-level="{{ m.level_tag }}" role="{% if m.level_tag == 'error' %}alert{% else %}status{% endif %}"
+         class="toast pointer-events-auto flex items-start gap-3 rounded-lg border border-l-4 bg-white px-4 py-3 text-sm text-garden-900 shadow-lg {% if m.level_tag == 'error' %}border-red-200 border-l-red-600{% else %}border-garden-900/10 border-l-garden-600{% endif %}">
+      {% if m.level_tag == 'error' %}
+      <svg class="mt-0.5 h-5 w-5 shrink-0 text-red-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01"/></svg>
+      {% else %}
+      <svg class="mt-0.5 h-5 w-5 shrink-0 text-garden-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.5 2.5 2.5 4.5-5"/></svg>
+      {% endif %}
+      <p class="min-w-0 flex-1 font-medium">{{ m }}</p>
+      <button type="button" data-toast-close aria-label="Dismiss message"
+              class="-mr-1 -mt-0.5 rounded p-1 text-garden-900/60 hover:bg-garden-50 hover:text-garden-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-garden-600">
+        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+      </button>
+    </div>
+    {% endfor %}
+  </div>
 
   <dialog id="quick-view" aria-label="Details"
           class="fixed inset-y-0 right-0 m-0 ml-auto h-full max-h-full w-full max-w-md overflow-hidden bg-white p-0 text-garden-900 shadow-2xl backdrop:bg-black/30">
