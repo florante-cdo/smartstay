@@ -81,6 +81,11 @@ class EnquiryForm(forms.ModelForm):
         if check_in and check_out and check_out <= check_in:
             self.add_error("requested_check_out", "Check-out must be after check-in.")
         room, count = data.get("room_type"), data.get("guest_count")
+        from core.limits import group_size_error
+
+        group_msg = group_size_error(count)
+        if group_msg:
+            self.add_error("guest_count", group_msg)
         if room and count and count > room.capacity:
             self.add_error("guest_count", f"The {room.name} sleeps up to {room.capacity} guests.")
         return data

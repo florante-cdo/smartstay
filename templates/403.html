@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Not allowed · Starwood Gardens{% endblock %}
+{% block demo_banner %}{% endblock %}
+{% block content %}
+<main class="mx-auto flex min-h-[70vh] max-w-xl flex-col items-start justify-center px-6 py-16">
+  <h1 class="font-display text-4xl font-semibold tracking-tight">This page is for managers</h1>
+  <p class="mt-3 text-garden-900/70">
+    Your account doesn't have access to this part of the system. If you think it should,
+    ask a manager to check your role.
+  </p>
+  <div class="mt-6">
+    <a href="/staff/" class="rounded-md bg-garden-700 px-4 py-2 text-sm font-semibold text-white hover:bg-garden-900">Back to Overview</a>
+  </div>
+</main>
+{% endblock %}
