@@ -159,5 +159,23 @@ def enquiry_detail(request, pk):
         "note_form": note_form,
         "status_form": status_form,
         "can_change": bool(allowed_next(enquiry.status)),
+        "reservations": enquiry.reservations.select_related("room_type").order_by("-created_at"),
+        "can_reserve": enquiry.status in ("contacted", "pending_guest"),
     }
     return render(request, "enquiries/detail.html", context)
+
+
+@never_cache
+@role_required("reception", "manager")
+def enquiry_quick(request, pk):
+    enquiry = get_object_or_404(
+        Enquiry.objects.select_related("campaign", "room_type", "assigned_to"), pk=pk
+    )
+    return render(request, "enquiries/_quick.html", {
+        "enquiry": enquiry,
+        "dot": STATUS_DOTS.get(enquiry.status, "bg-stone-400"),
+        "source_label": enquiry.source.replace("_", " ").title(),
+        "nights": (enquiry.requested_check_out - enquiry.requested_check_in).days,
+        "last_note": enquiry.notes.select_related("author").order_by("-created_at").first(),
+        "reservation": enquiry.reservations.select_related("room_type").order_by("-created_at").first(),
+    })

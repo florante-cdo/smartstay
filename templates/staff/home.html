@@ -23,19 +23,19 @@
     <p class="text-xs text-garden-900/60">Oldest enquiries that nobody has replied to</p>
     <div class="mt-3 divide-y divide-garden-900/10 overflow-hidden rounded-lg border border-garden-900/10 bg-white">
       {% for e in attention %}
-      <a href="{% url 'staff_enquiry' e.pk %}"
-         class="flex items-center justify-between gap-4 border-l-4 px-4 py-3 hover:bg-garden-50 {% if e.is_overdue %}border-amber-500{% else %}border-transparent{% endif %}">
-        <span class="min-w-0">
-          <span class="block truncate font-semibold">{{ e.guest_name }}</span>
-          <span class="block truncate text-xs text-garden-900/60">
+      <div class="flex items-center justify-between gap-3 border-l-4 px-4 py-3 {% if e.is_overdue %}border-amber-500{% else %}border-transparent{% endif %}">
+        <div class="min-w-0">
+          <p class="truncate font-semibold">{{ e.guest_name }}</p>
+          <p class="truncate text-xs text-garden-900/60">
             {{ e.reference }} · {{ e.requested_check_in|date:"d M" }} to {{ e.requested_check_out|date:"d M" }}, {{ e.guest_count }} guest{{ e.guest_count|pluralize }}
             {% if e.campaign %}· {{ e.campaign.name }}{% endif %}
-          </span>
-        </span>
-        <span class="shrink-0 text-right text-xs {% if e.is_overdue %}font-medium text-amber-700{% else %}text-garden-900/60{% endif %}">
-          Waiting {{ e.created_at|timesince }}
-        </span>
-      </a>
+          </p>
+          <p class="mt-0.5 text-xs {% if e.is_overdue %}font-medium text-amber-700{% else %}text-garden-900/60{% endif %}">Waiting {{ e.created_at|timesince }}</p>
+        </div>
+        <div class="shrink-0">
+          {% url 'staff_enquiry_quick' e.pk as quick_url %}{% include "staff/_view_button.html" with url=quick_url name=e.guest_name %}
+        </div>
+      </div>
       {% empty %}
       <p class="px-4 py-8 text-center text-sm text-garden-900/60">All caught up. No enquiries are waiting.</p>
       {% endfor %}
@@ -47,9 +47,14 @@
     <p class="text-xs text-garden-900/60">Latest status changes</p>
     <ul class="mt-3 divide-y divide-garden-900/10 overflow-hidden rounded-lg border border-garden-900/10 bg-white">
       {% for c in activity %}
-      <li class="px-4 py-3 text-sm">
-        <p><span class="font-medium">{{ c.enquiry.reference }}</span> moved to {{ c.to_label }}</p>
-        <p class="text-xs text-garden-900/60">{{ c.who }}, {{ c.changed_at|timesince }} ago</p>
+      <li class="flex items-center justify-between gap-3 px-4 py-3 text-sm">
+        <div class="min-w-0">
+          <p><span class="font-medium">{{ c.enquiry.reference }}</span> moved to {{ c.to_label }}</p>
+          <p class="text-xs text-garden-900/60">{{ c.who }}, {{ c.changed_at|timesince }} ago</p>
+        </div>
+        <div class="shrink-0">
+          {% url 'staff_enquiry_quick' c.enquiry_id as quick_url %}{% include "staff/_view_button.html" with url=quick_url name=c.enquiry.guest_name %}
+        </div>
       </li>
       {% empty %}
       <li class="px-4 py-8 text-center text-sm text-garden-900/60">No activity yet.</li>

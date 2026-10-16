@@ -1,0 +1,22 @@
+{% if page.paginator.num_pages > 1 %}
+<nav class="flex flex-wrap items-center justify-between gap-3 border-t border-garden-900/10 px-4 py-3 text-sm" aria-label="Pagination">
+  <p class="text-garden-900/60">Page {{ page.number }} of {{ page.paginator.num_pages }}</p>
+  <div class="flex flex-wrap items-center gap-1">
+    {% if page.has_previous %}
+    <a href="?{{ base_query }}{% if base_query %}&{% endif %}page={{ page.previous_page_number }}" class="rounded-md px-3 py-1.5 font-medium hover:bg-garden-100">Previous</a>
+    {% endif %}
+    {% for p in pages %}
+      {% if p == ellipsis %}
+      <span class="px-2 text-garden-900/40">…</span>
+      {% elif p == page.number %}
+      <span aria-current="page" class="rounded-md bg-garden-700 px-3 py-1.5 font-semibold tabular-nums text-white">{{ p }}</span>
+      {% else %}
+      <a href="?{{ base_query }}{% if base_query %}&{% endif %}page={{ p }}" class="rounded-md px-3 py-1.5 tabular-nums hover:bg-garden-100">{{ p }}</a>
+      {% endif %}
+    {% endfor %}
+    {% if page.has_next %}
+    <a href="?{{ base_query }}{% if base_query %}&{% endif %}page={{ page.next_page_number }}" class="rounded-md px-3 py-1.5 font-medium hover:bg-garden-100">Next</a>
+    {% endif %}
+  </div>
+</nav>
+{% endif %}

@@ -10,4 +10,9 @@ def staff_nav(request):
         return {}
     from enquiries.models import Enquiry
 
-    return {"nav_new_count": Enquiry.objects.filter(status=Enquiry.Status.NEW).count()}
+    from reservations.models import Reservation
+
+    return {
+        "nav_new_count": Enquiry.objects.filter(status=Enquiry.Status.NEW).count(),
+        "nav_pending_count": Reservation.objects.filter(status="pending").count(),
+    }

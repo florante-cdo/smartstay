@@ -1,0 +1,88 @@
+{% extends "staff/base_staff.html" %}
+
+{% block title %}{{ res.reference }} · Starwood Gardens{% endblock %}
+
+{% block staff_content %}
+<a href="{% url 'staff_reservations' %}" class="text-sm font-medium text-garden-600 hover:text-garden-900">Back to reservations</a>
+
+<div class="mt-3">
+  <h1 class="font-display text-3xl font-semibold tracking-tight">{{ enquiry.guest_name }}</h1>
+  <p class="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-garden-700">
+    <span class="tabular-nums text-garden-900/70">{{ res.reference }}</span>
+    <span class="inline-flex items-center gap-2 font-medium text-garden-900"><span class="h-2 w-2 rounded-full {{ dot }}"></span>{{ res.get_status_display }}</span>
+    <a href="{% url 'staff_enquiry' enquiry.pk %}" class="font-medium text-garden-600 hover:text-garden-900">Open enquiry {{ enquiry.reference }}</a>
+  </p>
+</div>
+
+<div class="mt-6 grid gap-6 lg:grid-cols-3">
+  <section class="rounded-lg border border-garden-900/10 bg-white p-5 lg:col-span-2">
+    <h2 class="text-sm font-semibold">Reservation request</h2>
+    <dl class="mt-4 grid gap-x-6 gap-y-4 text-sm sm:grid-cols-2">
+      <div><dt class="text-xs text-garden-900/60">Room type</dt><dd class="mt-0.5 font-medium">{{ res.room_type.name }}</dd></div>
+      <div><dt class="text-xs text-garden-900/60">Guests</dt><dd class="mt-0.5 font-medium">{{ res.guest_count }}</dd></div>
+      <div class="sm:col-span-2">
+        <dt class="text-xs text-garden-900/60">Stay</dt>
+        <dd class="mt-0.5 font-medium">{{ res.check_in|date:"D d M Y" }} to {{ res.check_out|date:"D d M Y" }}
+          <span class="font-normal text-garden-900/60">({{ nights }} night{{ nights|pluralize }})</span></dd>
+      </div>
+      <div><dt class="text-xs text-garden-900/60">Phone</dt><dd class="mt-0.5 font-medium tabular-nums">{{ enquiry.phone }}</dd></div>
+      <div><dt class="text-xs text-garden-900/60">Requested by</dt>
+        <dd class="mt-0.5 font-medium">{{ res.created_by.get_full_name|default:res.created_by.username }}, {{ res.created_at|date:"d M, H:i" }}</dd></div>
+      {% if res.confirmed_by %}
+      <div><dt class="text-xs text-garden-900/60">Confirmed by</dt>
+        <dd class="mt-0.5 font-medium">{{ res.confirmed_by.get_full_name|default:res.confirmed_by.username }}, {{ res.confirmed_at|date:"d M, H:i" }}</dd></div>
+      {% endif %}
+      {% if res.cancellation_reason %}
+      <div class="sm:col-span-2"><dt class="text-xs text-garden-900/60">Reason</dt><dd class="mt-0.5">{{ res.cancellation_reason }}</dd></div>
+      {% endif %}
+      <div class="sm:col-span-2"><dt class="text-xs text-garden-900/60">Notes</dt>
+        <dd class="mt-0.5">{% if res.notes %}{{ res.notes|linebreaksbr }}{% else %}<span class="text-garden-900/50">None</span>{% endif %}</dd></div>
+    </dl>
+  </section>
+
+  <section class="rounded-lg border border-garden-900/10 bg-white p-5">
+    <h2 class="text-sm font-semibold">Decision</h2>
+
+    {% if res.status == "pending" %}
+      {% if is_manager %}
+      <p class="mt-3 text-sm text-garden-900/70">This system does not check availability. Confirm only after you have checked by the hotel's own process.</p>
+      <form method="post" class="mt-4">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="confirm">
+        <button type="submit" class="w-full rounded-md bg-garden-700 px-4 py-2 text-sm font-semibold text-white hover:bg-garden-900">Confirm reservation</button>
+      </form>
+      <form method="post" class="mt-5 space-y-3 border-t border-garden-900/10 pt-4">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="decline">
+        <div>
+          <label for="{{ decline_form.reason.id_for_label }}" class="text-sm font-medium">Decline with a reason</label>
+          {{ decline_form.reason }}
+          {% for err in decline_form.reason.errors %}<p class="mt-1 text-sm text-red-700">{{ err }}</p>{% endfor %}
+        </div>
+        <button type="submit" class="w-full rounded-md border border-garden-900/20 px-4 py-2 text-sm font-semibold hover:bg-garden-50">Decline reservation</button>
+      </form>
+      {% else %}
+      <p class="mt-3 text-sm text-garden-900/70">Waiting for a manager to confirm or decline. Only a manager can do this.</p>
+      {% endif %}
+
+    {% elif res.status == "confirmed" %}
+      <p class="mt-3 text-sm text-garden-900/70">This reservation is confirmed.</p>
+      {% if is_manager %}
+      <form method="post" class="mt-4 space-y-3 border-t border-garden-900/10 pt-4">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="cancel">
+        <div>
+          <label for="{{ cancel_form.reason.id_for_label }}" class="text-sm font-medium">Cancel with a reason</label>
+          {{ cancel_form.reason }}
+          {% for err in cancel_form.reason.errors %}<p class="mt-1 text-sm text-red-700">{{ err }}</p>{% endfor %}
+        </div>
+        <button type="submit" class="w-full rounded-md border border-red-300 px-4 py-2 text-sm font-semibold text-red-800 hover:bg-red-50">Cancel reservation</button>
+      </form>
+      {% endif %}
+
+    {% else %}
+      <p class="mt-3 text-sm text-garden-900/70">This reservation is {{ res.get_status_display|lower }}. The record is kept for history.</p>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

@@ -1,4 +1,5 @@
-from enquiries.views import enquiry_detail
+from reservations import views as reservation_views
+from enquiries.views import enquiry_detail, enquiry_quick
 from django.contrib import admin
 from django.contrib.auth.views import LoginView, LogoutView
 from django.urls import path
@@ -21,4 +22,9 @@ urlpatterns = [
     path("staff/", staff_views.staff_home, name="staff_home"),
     path("staff/inbox/", enquiry_views.inbox, name="staff_inbox"),
     path("staff/enquiries/<int:pk>/", enquiry_detail, name="staff_enquiry"),
+    path("staff/enquiries/<int:pk>/quick/", enquiry_quick, name="staff_enquiry_quick"),
+    path("staff/reservations/<int:pk>/quick/", reservation_views.reservation_quick, name="staff_reservation_quick"),
+    path("staff/reservations/", reservation_views.reservation_list, name="staff_reservations"),
+    path("staff/reservations/<int:pk>/", reservation_views.reservation_detail, name="staff_reservation"),
+    path("staff/enquiries/<int:enquiry_pk>/reserve/", reservation_views.reservation_create, name="staff_reservation_create"),
 ]

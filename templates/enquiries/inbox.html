@@ -51,13 +51,14 @@
         <th class="hidden px-4 py-3 font-medium lg:table-cell">Source</th>
         <th class="px-4 py-3 font-medium">Status</th>
         <th class="hidden px-4 py-3 text-right font-medium md:table-cell">Received</th>
+        <th class="px-4 py-3 text-right font-medium"><span class="sr-only">Actions</span></th>
       </tr>
     </thead>
     <tbody class="divide-y divide-garden-900/10">
       {% for row in rows %}
       <tr class="hover:bg-garden-50/60">
         <td class="border-l-4 px-4 py-3 {% if row.needs_follow_up %}border-amber-500{% else %}border-transparent{% endif %}">
-          <p class="font-semibold"><a href="{% url 'staff_enquiry' row.pk %}" class="hover:text-garden-600 hover:underline">{{ row.guest_name }}</a></p>
+          <p class="font-semibold">{{ row.guest_name }}</p>
           <p class="mt-0.5 flex flex-wrap gap-x-3 text-xs text-garden-900/60">
             <span class="tabular-nums">{{ row.reference }}</span>
             <span class="tabular-nums">{{ row.phone }}</span>
@@ -84,10 +85,13 @@
           {{ row.created_at|date:"d M" }}
           <p class="text-xs tabular-nums text-garden-900/60">{{ row.created_at|date:"H:i" }}</p>
         </td>
+        <td class="px-4 py-3 text-right">
+          {% url 'staff_enquiry_quick' row.pk as quick_url %}{% include "staff/_view_button.html" with url=quick_url name=row.guest_name %}
+        </td>
       </tr>
       {% empty %}
       <tr>
-        <td colspan="5" class="px-4 py-12 text-center">
+        <td colspan="6" class="px-4 py-12 text-center">
           <p class="font-medium">No enquiries match these filters</p>
           <p class="mt-1 text-sm text-garden-900/60">Try a different search, or <a href="{% url 'staff_inbox' %}" class="font-medium text-garden-600 hover:text-garden-900">clear the filters</a>.</p>
         </td>

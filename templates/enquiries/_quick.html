@@ -1,0 +1,60 @@
+<div class="flex h-full flex-col">
+  <div class="flex items-start justify-between gap-4 border-b border-garden-900/10 px-6 py-5">
+    <div class="min-w-0">
+      <h2 class="font-display text-2xl font-semibold tracking-tight">{{ enquiry.guest_name }}</h2>
+      <p class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-garden-900/70">
+        <span class="tabular-nums">{{ enquiry.reference }}</span>
+        <span class="inline-flex items-center gap-2 font-medium text-garden-900"><span class="h-2 w-2 rounded-full {{ dot }}"></span>{{ enquiry.get_status_display }}</span>
+      </p>
+    </div>
+    <button type="button" onclick="document.getElementById('quick-view').close()"
+            class="rounded-md px-2.5 py-1.5 text-sm font-medium text-garden-900/70 hover:bg-garden-100">Close</button>
+  </div>
+
+  <div class="flex-1 space-y-5 overflow-y-auto px-6 py-5 text-sm">
+    <dl class="grid grid-cols-2 gap-x-4 gap-y-4">
+      <div><dt class="text-xs text-garden-900/60">Phone</dt><dd class="mt-0.5 font-medium tabular-nums">{{ enquiry.phone }}</dd></div>
+      <div><dt class="text-xs text-garden-900/60">Received</dt><dd class="mt-0.5 font-medium">{{ enquiry.created_at|date:"d M, H:i" }}</dd></div>
+      <div class="col-span-2">
+        <dt class="text-xs text-garden-900/60">Stay</dt>
+        <dd class="mt-0.5 font-medium">{{ enquiry.requested_check_in|date:"D d M" }} to {{ enquiry.requested_check_out|date:"D d M" }}
+          <span class="font-normal text-garden-900/60">({{ nights }} night{{ nights|pluralize }}, {{ enquiry.guest_count }} guest{{ enquiry.guest_count|pluralize }})</span></dd>
+      </div>
+      <div><dt class="text-xs text-garden-900/60">Room type</dt><dd class="mt-0.5 font-medium">{{ enquiry.room_type.name|default:"No preference" }}</dd></div>
+      <div><dt class="text-xs text-garden-900/60">Assigned to</dt>
+        <dd class="mt-0.5 font-medium">{% if enquiry.assigned_to %}{{ enquiry.assigned_to.get_full_name|default:enquiry.assigned_to.username }}{% else %}Unassigned{% endif %}</dd></div>
+      <div><dt class="text-xs text-garden-900/60">Source</dt><dd class="mt-0.5 font-medium">{{ source_label }}</dd></div>
+      <div><dt class="text-xs text-garden-900/60">Campaign</dt><dd class="mt-0.5 font-medium">{{ enquiry.campaign.name|default:"None" }}</dd></div>
+    </dl>
+
+    {% if enquiry.message %}
+    <div>
+      <p class="text-xs text-garden-900/60">Message from guest</p>
+      <p class="mt-0.5">{{ enquiry.message|truncatechars:240|linebreaksbr }}</p>
+    </div>
+    {% endif %}
+
+    <div>
+      <p class="text-xs text-garden-900/60">Latest note</p>
+      {% if last_note %}
+      <p class="mt-0.5">{{ last_note.note|truncatechars:240|linebreaksbr }}</p>
+      <p class="mt-1 text-xs text-garden-900/60">{{ last_note.author.get_full_name|default:last_note.author.username }}, {{ last_note.created_at|timesince }} ago</p>
+      {% else %}
+      <p class="mt-0.5 text-garden-900/50">No notes yet</p>
+      {% endif %}
+    </div>
+
+    {% if reservation %}
+    <div>
+      <p class="text-xs text-garden-900/60">Reservation</p>
+      <p class="mt-0.5 font-medium"><span class="tabular-nums">{{ reservation.reference }}</span>, {{ reservation.get_status_display }}</p>
+      <p class="text-xs text-garden-900/60">{{ reservation.room_type.name }}, {{ reservation.check_in|date:"d M" }} to {{ reservation.check_out|date:"d M" }}</p>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="flex gap-2 border-t border-garden-900/10 px-6 py-4">
+    <a href="{% url 'staff_enquiry' enquiry.pk %}" class="flex-1 rounded-md bg-garden-700 px-4 py-2 text-center text-sm font-semibold text-white hover:bg-garden-900">Open full details</a>
+    <a href="tel:{{ enquiry.phone }}" hx-boost="false" class="rounded-md border border-garden-900/20 px-4 py-2 text-sm font-semibold hover:bg-garden-50">Call</a>
+  </div>
+</div>

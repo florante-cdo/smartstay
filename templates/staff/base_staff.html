@@ -3,6 +3,9 @@
 {% block head_extra %}
 <style>
   html { scrollbar-gutter: stable; }
+  #quick-view[open] { animation: qv-in .18s ease-out; }
+  @keyframes qv-in { from { transform: translateX(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) { #quick-view[open] { animation: none; } }
   aside { view-transition-name: staff-sidebar; }
   ::view-transition-old(root), ::view-transition-new(root) { animation-duration: .18s; animation-timing-function: ease; }
   #nav-progress {
@@ -38,17 +41,38 @@
       if (main()) main().classList.remove("is-loading");
     }
 
-    document.addEventListener("htmx:beforeRequest", start);
+    document.addEventListener("htmx:beforeRequest", function (e) {
+      if (e.detail.requestConfig && e.detail.requestConfig.boosted) start();
+    });
     document.addEventListener("htmx:afterSettle", stop);
     document.addEventListener("htmx:sendError", stop);
     document.addEventListener("htmx:historyRestore", stop);
     window.addEventListener("pageshow", stop);
 
+    function panel() { return document.getElementById("quick-view"); }
+    document.addEventListener("htmx:beforeRequest", function (e) {
+      var t = e.detail.target;
+      if (t && t.id === "quick-view-body") {
+        t.innerHTML = '<p class="p-6 text-sm text-garden-900/70">Loading details…</p>';
+        if (panel() && !panel().open) panel().showModal();
+      }
+    });
+    document.addEventListener("htmx:responseError", function (e) {
+      var t = e.detail.target;
+      if (t && t.id === "quick-view-body") {
+        t.innerHTML = '<p class="p-6 text-sm text-red-700">Could not load the details. Close this panel and try again.</p>';
+      }
+    });
+    document.addEventListener("click", function (e) {
+      if (panel() && e.target === panel()) panel().close();
+    });
+
     // If the reply is not a staff page (signed out, access denied, an error),
     // let the browser load it normally instead of swapping it in.
     document.addEventListener("htmx:beforeSwap", function (e) {
       var xhr = e.detail.xhr;
-      if (xhr && xhr.responseText.indexOf('id="staff-shell"') === -1) {
+      var boosted = e.detail.requestConfig && e.detail.requestConfig.boosted;
+      if (boosted && xhr && xhr.responseText.indexOf('id="staff-shell"') === -1) {
         e.detail.shouldSwap = false;
         window.location.href = xhr.responseURL || window.location.href;
       }
@@ -93,10 +117,11 @@
           {% if nav_new_count %}<span class="ml-auto rounded-full bg-amber-400 px-2 py-0.5 text-xs font-semibold tabular-nums text-garden-900">{{ nav_new_count }}</span>{% endif %}
         </a>
 
-        <span class="flex cursor-default items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium text-garden-100/40" title="Built in a later step">
+        <a href="{% url 'staff_reservations' %}"
+           class="flex items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium {% if nav == 'reservations' %}bg-white/10 text-white{% else %}text-garden-100/80 hover:bg-white/5 hover:text-white{% endif %}">
           Reservations
-          <span class="ml-auto rounded bg-white/10 px-1.5 py-0.5 text-[11px] font-normal text-garden-100/70">Soon</span>
-        </span>
+          {% if nav_pending_count %}<span class="ml-auto rounded-full bg-amber-400 px-2 py-0.5 text-xs font-semibold tabular-nums text-garden-900">{{ nav_pending_count }}</span>{% endif %}
+        </a>
 
         {% if role == "manager" %}
         <p class="hidden px-3 pb-1 pt-4 text-xs font-medium text-garden-100/50 md:block">Manager</p>
@@ -143,5 +168,10 @@
       {% block staff_content %}{% endblock %}
     </div>
   </main>
+
+  <dialog id="quick-view" aria-label="Details"
+          class="fixed inset-y-0 right-0 m-0 ml-auto h-full max-h-full w-full max-w-md overflow-hidden bg-white p-0 text-garden-900 shadow-2xl backdrop:bg-black/30">
+    <div id="quick-view-body" class="h-full"></div>
+  </dialog>
 </div>
 {% endblock %}

@@ -1,0 +1,65 @@
+{% extends "staff/base_staff.html" %}
+
+{% block title %}Reservations · Starwood Gardens{% endblock %}
+
+{% block staff_content %}
+<h1 class="font-display text-3xl font-semibold tracking-tight">Reservations</h1>
+<p class="mt-1 text-sm text-garden-900/70">
+  {% if page.paginator.count %}Showing {{ page.start_index }} to {{ page.end_index }} of {{ page.paginator.count }}.{% else %}Nothing to show here.{% endif %}
+  Pending requests are not confirmed bookings.
+</p>
+
+<div class="mt-6 flex gap-1 overflow-x-auto border-b border-garden-900/15">
+  {% for value, label, count in tabs %}
+  <a href="?status={{ value }}"
+     class="-mb-px whitespace-nowrap border-b-2 px-3 py-2 text-sm font-medium {% if value == status %}border-garden-700 text-garden-900{% else %}border-transparent text-garden-900/60 hover:border-garden-900/30 hover:text-garden-900{% endif %}">
+    {{ label }} <span class="ml-1 tabular-nums text-garden-900/50">{{ count }}</span>
+  </a>
+  {% endfor %}
+</div>
+
+<div class="mt-4 overflow-hidden rounded-lg border border-garden-900/10 bg-white">
+  <table class="w-full text-left text-sm">
+    <thead class="border-b border-garden-900/10 bg-garden-50/60 text-xs text-garden-900/60">
+      <tr>
+        <th class="px-4 py-3 font-medium">Guest</th>
+        <th class="hidden px-4 py-3 font-medium md:table-cell">Room and stay</th>
+        <th class="px-4 py-3 font-medium">Status</th>
+        <th class="hidden px-4 py-3 text-right font-medium md:table-cell">Requested</th>
+        <th class="px-4 py-3 text-right font-medium"><span class="sr-only">Actions</span></th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-garden-900/10">
+      {% for r in rows %}
+      <tr class="hover:bg-garden-50/60">
+        <td class="px-4 py-3">
+          <p class="font-semibold">{{ r.enquiry.guest_name }}</p>
+          <p class="mt-0.5 text-xs tabular-nums text-garden-900/60">{{ r.reference }}</p>
+          <p class="mt-1 text-xs text-garden-900/70 md:hidden">{{ r.room_type.name }}, {{ r.check_in|date:"d M" }} to {{ r.check_out|date:"d M" }}</p>
+        </td>
+        <td class="hidden px-4 py-3 md:table-cell">
+          {{ r.room_type.name }}
+          <p class="text-xs text-garden-900/60">{{ r.check_in|date:"d M" }} to {{ r.check_out|date:"d M" }}, {{ r.guest_count }} guest{{ r.guest_count|pluralize }}</p>
+        </td>
+        <td class="px-4 py-3">
+          <span class="inline-flex items-center gap-2 whitespace-nowrap"><span class="h-2 w-2 rounded-full {{ r.dot }}"></span>{{ r.get_status_display }}</span>
+        </td>
+        <td class="hidden whitespace-nowrap px-4 py-3 text-right md:table-cell">
+          {{ r.created_at|date:"d M" }}
+          <p class="text-xs text-garden-900/60">{{ r.created_by.get_full_name|default:r.created_by.username }}</p>
+        </td>
+        <td class="px-4 py-3 text-right">
+          {% url 'staff_reservation_quick' r.pk as quick_url %}{% include "staff/_view_button.html" with url=quick_url name=r.enquiry.guest_name %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5" class="px-4 py-12 text-center">
+        <p class="font-medium">No reservations here</p>
+        <p class="mt-1 text-sm text-garden-900/60">Reception creates a request from an enquiry once the guest has been contacted.</p>
+      </td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% include "staff/_pagination.html" %}
+</div>
+{% endblock %}
