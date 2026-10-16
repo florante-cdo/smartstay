@@ -4,7 +4,7 @@
       <h2 class="font-display text-2xl font-semibold tracking-tight">{{ c.name }}</h2>
       <p class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-garden-900/70">
         <span>{{ c.get_source_display }}, {{ c.get_medium_display }}</span>
-        <span class="inline-flex items-center gap-2 font-medium text-garden-900"><span class="h-2 w-2 rounded-full {% if c.is_active %}bg-emerald-600{% else %}bg-stone-400{% endif %}"></span>{% if c.is_active %}Active{% else %}Paused{% endif %}</span>
+        <span class="inline-flex items-center gap-2 font-medium text-garden-900"><span class="h-2 w-2 rounded-full {% if c.is_active %}bg-emerald-600{% elif c.has_ended %}bg-red-500{% else %}bg-stone-400{% endif %}"></span>{{ c.status_label }}{% if c.ends_on %}, {% if c.has_ended %}ended{% else %}until{% endif %} {{ c.ends_on|date:"j M" }}{% endif %}</span>
       </p>
     </div>
     <button type="button" onclick="document.getElementById('quick-view').close()"
@@ -47,7 +47,7 @@
     {% endif %}
 
     {% if not c.is_active %}
-    <p class="rounded-md bg-amber-50 px-3 py-2 text-amber-900">Paused. Guests who open this link see an 'offer ended' page.</p>
+    <p class="rounded-md bg-amber-50 px-3 py-2 text-amber-900">{% if c.has_ended %}Ended on {{ c.ends_on|date:"j F Y" }}.{% else %}Paused.{% endif %} Guests who open this link see an 'offer ended' page.</p>
     {% endif %}
   </div>
 

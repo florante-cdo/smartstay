@@ -7,7 +7,7 @@
   <p class="text-sm font-medium text-garden-700">Starwood Gardens Hotel</p>
   <h1 class="mt-2 font-display text-4xl font-semibold tracking-tight text-garden-900">This offer has ended</h1>
   <p class="mt-4 text-lg leading-relaxed text-garden-900/80">
-    The {{ campaign.name }} offer is no longer running, so the link you followed can't be used to enquire.
+    The {{ campaign.name }} offer {% if campaign.has_ended %}ended on {{ campaign.ends_on|date:"j F Y" }}{% else %}is no longer running{% endif %}, so the link you followed can't be used to enquire.
   </p>
   <p class="mt-3 leading-relaxed text-garden-900/70">
     You're still welcome to send us an enquiry about a stay. Tell us your dates and the team will get back to you.

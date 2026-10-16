@@ -34,7 +34,7 @@
         <td class="px-4 py-3 text-right font-medium tabular-nums">{{ c.enquiry_total }}</td>
         <td class="hidden px-4 py-3 text-right font-medium tabular-nums md:table-cell">{{ c.confirmed_total }}</td>
         <td class="hidden px-4 py-3 sm:table-cell">
-          <span class="inline-flex items-center gap-2 whitespace-nowrap"><span class="h-2 w-2 rounded-full {% if c.is_active %}bg-emerald-600{% else %}bg-stone-400{% endif %}"></span>{% if c.is_active %}Active{% else %}Paused{% endif %}</span>
+          <span class="inline-flex items-center gap-2 whitespace-nowrap"><span class="h-2 w-2 rounded-full {% if c.is_active %}bg-emerald-600{% elif c.has_ended %}bg-red-500{% else %}bg-stone-400{% endif %}"></span>{{ c.status_label }}{% if c.ends_on %}, {% if c.has_ended %}ended{% else %}until{% endif %} {{ c.ends_on|date:"j M" }}{% endif %}</span>
         </td>
         <td class="whitespace-nowrap px-4 py-3 text-right">
           <a href="{% url 'staff_campaign_edit' c.pk %}" class="mr-2 text-sm font-medium text-garden-600 hover:text-garden-900">Edit</a>

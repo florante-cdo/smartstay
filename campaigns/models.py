@@ -29,6 +29,7 @@ class Campaign(models.Model):
     headline = models.CharField(max_length=160, blank=True)
     offer_text = models.TextField(blank=True)
     is_active = models.BooleanField(default=True)
+    ends_on = models.DateField(null=True, blank=True, help_text="Last day the campaign runs. Leave blank to run until paused.")
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL
     )
@@ -40,6 +41,25 @@ class Campaign(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.source})"
+
+    @property
+    def has_ended(self):
+        from django.utils import timezone
+
+        return self.ends_on is not None and self.ends_on < timezone.localdate()
+
+    @property
+    def status_label(self):
+        if self.has_ended:
+            return "Ended"
+        return "Active" if self.is_active else "Paused"
+
+    @classmethod
+    def expire_overdue(cls):
+        """Switch off any active campaign whose last day has passed."""
+        from django.utils import timezone
+
+        return cls.objects.filter(is_active=True, ends_on__lt=timezone.localdate()).update(is_active=False)
 
     def tracked_path(self):
         query = urlencode(

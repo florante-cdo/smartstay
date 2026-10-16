@@ -14,6 +14,7 @@ def campaign_ended_gate(view):
 
     @wraps(view)
     def wrapper(request, *args, **kwargs):
+        Campaign.expire_overdue()
         if request.method == "GET":
             code = request.GET.get("utm_campaign", "").strip()
             if code:

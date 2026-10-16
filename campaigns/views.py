@@ -36,6 +36,7 @@ def _counts(ids):
 @never_cache
 @role_required("manager")
 def campaign_list(request):
+    Campaign.expire_overdue()
     paginator = Paginator(Campaign.objects.order_by("-is_active", "name"), PAGE_SIZE)
     page = paginator.get_page(request.GET.get("page"))
     pages = list(paginator.get_elided_page_range(page.number, on_each_side=1, on_ends=1))
