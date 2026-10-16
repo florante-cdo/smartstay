@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}This offer has ended · Starwood Gardens Hotel{% endblock %}
+
+{% block content %}
+<main class="mx-auto flex min-h-[70vh] max-w-xl flex-col justify-center px-6 py-16">
+  <p class="text-sm font-medium text-garden-700">Starwood Gardens Hotel</p>
+  <h1 class="mt-2 font-display text-4xl font-semibold tracking-tight text-garden-900">This offer has ended</h1>
+  <p class="mt-4 text-lg leading-relaxed text-garden-900/80">
+    The {{ campaign.name }} offer is no longer running, so the link you followed can't be used to enquire.
+  </p>
+  <p class="mt-3 leading-relaxed text-garden-900/70">
+    You're still welcome to send us an enquiry about a stay. Tell us your dates and the team will get back to you.
+  </p>
+  <div class="mt-8">
+    <a href="/" class="inline-block rounded-md bg-garden-700 px-5 py-3 font-semibold text-white hover:bg-garden-900">Enquire about a stay</a>
+  </div>
+</main>
+{% endblock %}

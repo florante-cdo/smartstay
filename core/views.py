@@ -1,3 +1,4 @@
+from core.campaign_gate import campaign_ended_gate
 from django.conf import settings
 from django.core.cache import cache
 from django.shortcuts import redirect, render
@@ -18,6 +19,7 @@ def _rate_key(request):
 
 
 @never_cache
+@campaign_ended_gate
 def landing(request):
     code = request.GET.get("utm_campaign", "").strip().lower()
     campaign = Campaign.objects.filter(code=code, is_active=True).first() if code else None

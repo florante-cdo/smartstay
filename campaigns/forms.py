@@ -30,7 +30,7 @@ class CampaignForm(forms.ModelForm):
             "landing_path": "Which page guests land on, for example /promo/.",
             "headline": "Shown at the top of the landing page for this campaign.",
             "offer_text": "A line or two describing the offer.",
-            "is_active": "Paused campaigns still work as links, but their enquiries are recorded as unknown.",
+            "is_active": "When off, anyone opening this campaign's link sees an 'offer ended' page instead.",
         }
         widgets = {"offer_text": forms.Textarea(attrs={"rows": 3})}
 
