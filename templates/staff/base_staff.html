@@ -133,8 +133,6 @@
         <p class="hidden px-3 pb-1 pt-4 text-xs font-medium text-garden-100/50 md:block">Manager</p>
         <a href="{% url 'staff_campaigns' %}"
            class="flex items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium {% if nav == 'campaigns' %}bg-white/10 text-white{% else %}text-garden-100/80 hover:bg-white/5 hover:text-white{% endif %}">Campaign links</a>
-        <a href="{% url 'staff_dashboard' %}"
-           class="flex items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium {% if nav == 'dashboard' %}bg-white/10 text-white{% else %}text-garden-100/80 hover:bg-white/5 hover:text-white{% endif %}">Dashboard</a>
         {% endif %}
       </nav>
     </div>

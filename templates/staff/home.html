@@ -6,6 +6,17 @@
 <h1 class="font-display text-3xl font-semibold tracking-tight">Welcome back</h1>
 <p class="mt-1 text-garden-900/70">{{ total_enquiries }} enquiries on record. Here is what needs attention today.</p>
 
+{% if is_manager %}
+<style>.ov-tab[aria-selected="true"] { border-color: #255640; color: #142e22; }</style>
+<div class="mt-6 flex gap-1 border-b border-garden-900/15" role="tablist" aria-label="Overview sections">
+  <button type="button" role="tab" id="tab-today" data-panel="today" aria-selected="true" aria-controls="panel-today"
+          class="ov-tab -mb-px border-b-2 border-transparent px-3 py-2 text-sm font-medium text-garden-900/60 hover:text-garden-900">Today</button>
+  <button type="button" role="tab" id="tab-perf" data-panel="perf" aria-selected="false" aria-controls="panel-perf"
+          class="ov-tab -mb-px border-b-2 border-transparent px-3 py-2 text-sm font-medium text-garden-900/60 hover:text-garden-900">Campaign performance</button>
+</div>
+{% endif %}
+
+<div id="panel-today" {% if is_manager %}role="tabpanel" aria-labelledby="tab-today"{% endif %}>
 <div class="mt-8 grid grid-cols-2 gap-3 lg:grid-cols-4">
   {% for t in tiles %}
   {% if t.url %}<a href="{% url 'staff_inbox' %}{{ t.url }}"{% else %}<div{% endif %}
@@ -62,4 +73,32 @@
     </ul>
   </section>
 </div>
+</div>
+
+{% if is_manager %}
+<div id="panel-perf" role="tabpanel" aria-labelledby="tab-perf" class="mt-6" hidden>
+  {% include "dashboard/_performance.html" %}
+</div>
+
+<script>
+(function () {
+  var tabs = document.querySelectorAll(".ov-tab");
+  if (!tabs.length) return;
+  function show(name, remember) {
+    tabs.forEach(function (t) {
+      var on = t.dataset.panel === name;
+      t.setAttribute("aria-selected", String(on));
+      document.getElementById("panel-" + t.dataset.panel).hidden = !on;
+    });
+    if (name === "perf") {
+      var d = document.getElementById("dash");
+      if (d) d.dispatchEvent(new Event("dash:show"));
+    }
+    if (remember) history.replaceState(null, "", name === "perf" ? "?view=performance" : location.pathname);
+  }
+  tabs.forEach(function (t) { t.addEventListener("click", function () { show(t.dataset.panel, true); }); });
+  if (new URLSearchParams(location.search).get("view") === "performance") show("perf", false);
+})();
+</script>
+{% endif %}
 {% endblock %}

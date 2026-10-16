@@ -4,6 +4,7 @@ from django.shortcuts import render
 from django.utils import timezone
 from django.views.decorators.cache import never_cache
 
+from dashboard.api import PERIODS
 from enquiries.models import Enquiry, StatusChange
 
 from .permissions import role_required, user_role
@@ -48,6 +49,9 @@ def staff_home(request):
         "role": user_role(request.user),
         "nav": "home",
         "total_enquiries": total,
+        "is_manager": user_role(request.user) == "manager",
+        "key": request.GET.get("days") if request.GET.get("days") in PERIODS else "30",
+        "periods": [(k, v[0]) for k, v in PERIODS.items()],
         "tiles": tiles,
         "attention": attention,
         "activity": activity,
