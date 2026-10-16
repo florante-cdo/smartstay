@@ -4,6 +4,7 @@
       <a href="{% url 'staff_home' %}" class="min-w-0" aria-label="Starwood Gardens staff home">
         <span class="sb-label block font-display text-xl font-semibold text-white">Starwood Gardens</span>
         <span class="sb-label block text-sm text-garden-100/70">Staff area</span>
+        {% if demo_mode %}<span class="sb-label mt-1.5 inline-block rounded bg-amber-400/20 px-1.5 py-0.5 text-xs font-medium text-amber-200" title="Sample data. No live availability or payments.">Sample data</span>{% endif %}
         <span class="sb-mark font-display text-xl font-semibold text-white" aria-hidden="true">SG</span>
       </a>
       <button id="sb-toggle" type="button" aria-expanded="true" aria-label="Collapse sidebar" title="Collapse sidebar"
@@ -70,19 +71,9 @@
     </nav>
   </div>
 
-  <div class="sb-label hidden md:block">
-    <div class="mx-3 mb-3 space-y-2 border-t border-white/10 px-2 pt-4 text-sm">
-      <p class="text-garden-100/70">{% now "l, j F" %}</p>
-      <a href="/promo/" target="_blank" rel="noopener" hx-boost="false" class="block font-medium text-garden-100 hover:text-white">Open the guest page</a>
-      {% if demo_mode %}
-      <p class="rounded-md bg-white/5 px-3 py-2 text-xs leading-relaxed text-garden-100/70">Sample data. No live availability or payments.</p>
-      {% endif %}
-    </div>
-  </div>
-
-  <div class="sb-foot flex items-center justify-between gap-3 border-t border-white/10 px-5 py-3 text-sm">
+  <div class="sb-foot space-y-1 border-t border-white/10 px-3 py-3 text-sm">
     <a href="{% url 'staff_profile' %}" title="My profile"
-       class="flex min-w-0 items-center gap-3 rounded-md p-1 {% if nav == 'profile' %}bg-white/10{% else %}hover:bg-white/5{% endif %}">
+       class="flex items-center gap-3 rounded-md px-3 py-2 {% if nav == 'profile' %}bg-white/10{% else %}hover:bg-white/5{% endif %}">
       <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-garden-600 text-sm font-semibold text-white" aria-hidden="true">{{ request.user.get_full_name|default:request.user.username|slice:":1"|upper }}</span>
       <span class="sb-label min-w-0">
         <span class="block truncate font-medium text-white">{{ request.user.get_full_name|default:request.user.username }}</span>
@@ -91,7 +82,8 @@
     </a>
     <form method="post" action="{% url 'staff_logout' %}" hx-boost="false">
       {% csrf_token %}
-      <button type="submit" title="Sign out" class="flex items-center gap-2 rounded-md px-2.5 py-1.5 font-medium text-garden-100 hover:bg-white/10 hover:text-white">
+      <button type="submit" title="Sign out"
+              class="flex w-full items-center gap-3 whitespace-nowrap rounded-md px-3 py-2 font-medium text-garden-100/80 hover:bg-white/5 hover:text-white">
         <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5M21 12H9"/></svg>
         <span class="sb-label">Sign out</span>
       </button>

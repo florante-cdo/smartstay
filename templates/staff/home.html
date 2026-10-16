@@ -6,9 +6,12 @@
 <div class="flex flex-wrap items-end justify-between gap-3">
   <div>
     <h1 class="font-display text-3xl font-semibold tracking-tight">Welcome back</h1>
-    <p class="mt-1 text-garden-900/70">{{ total_enquiries }} enquiries on record. Here is what needs attention today.</p>
+    <p class="mt-1 text-garden-900/70">{% now "l, j F" %}. {{ total_enquiries }} enquiries on record. Here is what needs attention today.</p>
   </div>
-  <a href="{% url 'staff_enquiry_new' %}" class="rounded-md bg-garden-700 px-4 py-2 text-sm font-semibold text-white hover:bg-garden-900">Log an enquiry</a>
+  <div class="flex items-center gap-4">
+    <a href="/promo/" target="_blank" rel="noopener" hx-boost="false" class="text-sm font-medium text-garden-600 hover:text-garden-900">View guest page</a>
+    <a href="{% url 'staff_enquiry_new' %}" class="rounded-md bg-garden-700 px-4 py-2 text-sm font-semibold text-white hover:bg-garden-900">Log an enquiry</a>
+  </div>
 </div>
 
 {% if is_manager %}
