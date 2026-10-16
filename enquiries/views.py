@@ -95,8 +95,8 @@ from django.contrib import messages  # noqa: E402
 from django.core.exceptions import PermissionDenied, ValidationError  # noqa: E402
 from django.shortcuts import get_object_or_404, redirect  # noqa: E402
 
-from .forms import NoteForm, StatusForm  # noqa: E402
-from .services import assign, change_status, staff_users  # noqa: E402
+from .forms import NoteForm, StaffEnquiryForm, StatusForm  # noqa: E402
+from .services import assign, change_status, create_staff_enquiry, staff_users  # noqa: E402
 from .workflow import allowed_next  # noqa: E402
 
 
@@ -192,4 +192,17 @@ def enquiry_quick(request, pk):
         "nights": (enquiry.requested_check_out - enquiry.requested_check_in).days,
         "last_note": enquiry.notes.select_related("author").order_by("-created_at").first(),
         "reservation": enquiry.reservations.select_related("room_type").order_by("-created_at").first(),
+    })
+
+
+@never_cache
+@role_required("reception", "manager")
+def enquiry_create(request):
+    form = StaffEnquiryForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        enquiry = create_staff_enquiry(request.user, form.cleaned_data)
+        messages.success(request, f"{enquiry.reference} logged and assigned to you.")
+        return redirect("staff_enquiry", pk=enquiry.pk)
+    return render(request, "enquiries/create.html", {
+        "role": user_role(request.user), "nav": "log", "form": form,
     })

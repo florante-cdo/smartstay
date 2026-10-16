@@ -1,0 +1,31 @@
+{% extends "staff/base_staff.html" %}
+
+{% block title %}Log an enquiry · Starwood Gardens{% endblock %}
+
+{% block staff_content %}
+<a href="{% url 'staff_inbox' %}" class="text-sm font-medium text-garden-600 hover:text-garden-900">Back to enquiries</a>
+
+<h1 class="mt-3 font-display text-3xl font-semibold tracking-tight">Log an enquiry</h1>
+<p class="mt-1 max-w-2xl text-sm text-garden-900/70">
+  For a guest who phoned, walked in or messaged on WhatsApp. It is saved as Contacted and assigned to you.
+</p>
+
+<form method="post" class="mt-6 max-w-3xl rounded-lg border border-garden-900/10 bg-white p-5">
+  {% csrf_token %}
+  {% for err in form.non_field_errors %}<p class="mb-3 text-sm text-red-700">{{ err }}</p>{% endfor %}
+  <div class="grid gap-4 sm:grid-cols-2">
+    {% for field in form %}
+    <div class="{% if field.name == 'message' or field.name == 'campaign' or field.name == 'channel' %}sm:col-span-2{% endif %}">
+      <label for="{{ field.id_for_label }}" class="text-sm font-medium">{{ field.label }}</label>
+      {{ field }}
+      {% if field.help_text %}<p class="mt-1 text-xs text-garden-900/60">{{ field.help_text }}</p>{% endif %}
+      {% for err in field.errors %}<p class="mt-1 text-sm text-red-700">{{ err }}</p>{% endfor %}
+    </div>
+    {% endfor %}
+  </div>
+  <div class="mt-6 flex items-center gap-4">
+    <button type="submit" class="rounded-md bg-garden-700 px-4 py-2 text-sm font-semibold text-white hover:bg-garden-900">Save enquiry</button>
+    <a href="{% url 'staff_inbox' %}" class="text-sm font-medium text-garden-600 hover:text-garden-900">Cancel</a>
+  </div>
+</form>
+{% endblock %}

@@ -136,3 +136,82 @@ class StatusForm(forms.Form):
         if data.get("to_status") in REASON_REQUIRED and not data.get("reason", "").strip():
             self.add_error("reason", "Please give a reason.")
         return data
+
+
+import re  # noqa: E402
+
+from django.utils import timezone  # noqa: E402
+
+from campaigns.models import Campaign  # noqa: E402
+from core.models import RoomType  # noqa: E402
+
+from .models import Enquiry  # noqa: E402
+
+CHANNELS = [("phone", "Phone call"), ("walk_in", "Walk-in"), ("whatsapp", "WhatsApp message")]
+
+
+class StaffEnquiryForm(forms.ModelForm):
+    channel = forms.ChoiceField(label="How did it come in?", choices=CHANNELS)
+    campaign = forms.ModelChoiceField(
+        label="Campaign the guest mentioned (optional)",
+        queryset=Campaign.objects.none(),
+        required=False,
+        empty_label="None, or not sure",
+        help_text="If the guest says where they saw us, pick it so the campaign gets the credit.",
+    )
+
+    class Meta:
+        model = Enquiry
+        fields = [
+            "guest_name", "phone", "preferred_contact", "requested_check_in",
+            "requested_check_out", "guest_count", "room_type", "message",
+        ]
+        labels = {
+            "guest_name": "Guest name",
+            "phone": "Phone number",
+            "preferred_contact": "Best way to reach them",
+            "requested_check_in": "Check-in",
+            "requested_check_out": "Check-out",
+            "guest_count": "Guests",
+            "room_type": "Room type (optional)",
+            "message": "What the guest asked for",
+        }
+        widgets = {
+            "requested_check_in": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
+            "requested_check_out": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
+            "message": forms.Textarea(attrs={"rows": 3}),
+        }
+
+    field_order = [
+        "channel", "guest_name", "phone", "preferred_contact", "requested_check_in",
+        "requested_check_out", "guest_count", "room_type", "message", "campaign",
+    ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["campaign"].queryset = Campaign.objects.filter(is_active=True).order_by("name")
+        room = self.fields["room_type"]
+        room.required = False
+        room.queryset = RoomType.objects.filter(is_active=True).order_by("display_order", "name")
+        room.empty_label = "No preference"
+        room.label_from_instance = lambda r: f"{r.name} (sleeps {r.capacity})"
+        for field in self.fields.values():
+            field.widget.attrs["class"] = _FIELD
+
+    def clean_phone(self):
+        phone = self.cleaned_data["phone"].strip()
+        if not re.fullmatch(r"[+0-9 ()\-]{7,20}", phone):
+            raise forms.ValidationError("Enter a phone number, for example 0712 345 678.")
+        return phone
+
+    def clean(self):
+        data = super().clean()
+        check_in, check_out = data.get("requested_check_in"), data.get("requested_check_out")
+        room, guests = data.get("room_type"), data.get("guest_count")
+        if check_in and check_in < timezone.localdate():
+            self.add_error("requested_check_in", "Check-in cannot be in the past.")
+        if check_in and check_out and check_out <= check_in:
+            self.add_error("requested_check_out", "Check-out must be after check-in.")
+        if room and guests and guests > room.capacity:
+            self.add_error("guest_count", f"{room.name} sleeps up to {room.capacity}. Choose a larger room type.")
+        return data

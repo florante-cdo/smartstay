@@ -3,8 +3,13 @@
 {% block title %}Overview · Starwood Gardens{% endblock %}
 
 {% block staff_content %}
-<h1 class="font-display text-3xl font-semibold tracking-tight">Welcome back</h1>
-<p class="mt-1 text-garden-900/70">{{ total_enquiries }} enquiries on record. Here is what needs attention today.</p>
+<div class="flex flex-wrap items-end justify-between gap-3">
+  <div>
+    <h1 class="font-display text-3xl font-semibold tracking-tight">Welcome back</h1>
+    <p class="mt-1 text-garden-900/70">{{ total_enquiries }} enquiries on record. Here is what needs attention today.</p>
+  </div>
+  <a href="{% url 'staff_enquiry_new' %}" class="rounded-md bg-garden-700 px-4 py-2 text-sm font-semibold text-white hover:bg-garden-900">Log an enquiry</a>
+</div>
 
 {% if is_manager %}
 <style>.ov-tab[aria-selected="true"] { border-color: #255640; color: #142e22; }</style>

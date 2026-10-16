@@ -97,3 +97,40 @@ def assign(enquiry, assignee, by):
     else:
         text = f"Assigned to {assignee.get_full_name() or assignee.username}."
     EnquiryNote.objects.create(enquiry=enquiry, author=by, note=text)
+
+
+def create_staff_enquiry(user, data):
+    """Log an enquiry that arrived by phone, walk-in or WhatsApp."""
+    from django.db import transaction
+
+    from .models import Enquiry, EnquiryNote, StatusChange
+
+    channel = data["channel"]
+    campaign = data.get("campaign")
+    channel_label = {"phone": "phone call", "walk_in": "walk-in", "whatsapp": "WhatsApp message"}[channel]
+    who = user.get_full_name() or user.username
+
+    with transaction.atomic():
+        enquiry = Enquiry.objects.create(
+            guest_name=data["guest_name"],
+            phone=data["phone"],
+            preferred_contact=data["preferred_contact"],
+            requested_check_in=data["requested_check_in"],
+            requested_check_out=data["requested_check_out"],
+            guest_count=data["guest_count"],
+            room_type=data.get("room_type"),
+            message=data.get("message", ""),
+            status=Enquiry.Status.CONTACTED,
+            campaign=campaign,
+            # Same rule as the web form: a chosen campaign supplies source and medium.
+            source=campaign.source if campaign else channel,
+            medium=campaign.medium if campaign else "staff_entry",
+            entry_channel=channel,
+            assigned_to=user,
+        )
+        StatusChange.objects.create(
+            enquiry=enquiry, from_status="", to_status=Enquiry.Status.CONTACTED,
+            changed_by=user, reason="Logged by staff",
+        )
+        EnquiryNote.objects.create(enquiry=enquiry, author=user, note=f"Logged by {who} ({channel_label}).")
+    return enquiry

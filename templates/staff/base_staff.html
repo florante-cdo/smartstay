@@ -123,6 +123,9 @@
           {% if nav_new_count %}<span class="ml-auto rounded-full bg-amber-400 px-2 py-0.5 text-xs font-semibold tabular-nums text-garden-900">{{ nav_new_count }}</span>{% endif %}
         </a>
 
+        <a href="{% url 'staff_enquiry_new' %}"
+           class="flex items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium {% if nav == 'log' %}bg-white/10 text-white{% else %}text-garden-100/80 hover:bg-white/5 hover:text-white{% endif %}">Log an enquiry</a>
+
         <a href="{% url 'staff_reservations' %}"
            class="flex items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium {% if nav == 'reservations' %}bg-white/10 text-white{% else %}text-garden-100/80 hover:bg-white/5 hover:text-white{% endif %}">
           Reservations

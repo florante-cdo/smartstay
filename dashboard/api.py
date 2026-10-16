@@ -24,6 +24,7 @@ SOURCE_LABELS = {
     "unknown": "Unknown link",
     "phone": "Phone",
     "walk_in": "Walk-in",
+    "whatsapp": "WhatsApp (staff entered)",
 }
 
 
