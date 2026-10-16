@@ -68,3 +68,32 @@ def change_status(enquiry, to_status, user, reason=""):
             reason=reason.strip(),
         )
     return enquiry
+
+
+def staff_users():
+    """Active users who can work enquiries (Reception and Manager groups)."""
+    from django.contrib.auth import get_user_model
+
+    return (
+        get_user_model()
+        .objects.filter(is_active=True, groups__name__iregex=r"^(reception|manager)$")
+        .distinct()
+        .order_by("first_name", "username")
+    )
+
+
+def assign(enquiry, assignee, by):
+    """Set or clear the owner of an enquiry and leave a note saying who did it."""
+    from .models import EnquiryNote
+
+    if enquiry.assigned_to_id == (assignee.pk if assignee else None):
+        return
+    enquiry.assigned_to = assignee
+    enquiry.save(update_fields=["assigned_to", "updated_at"])
+    if assignee is None:
+        text = "Unassigned."
+    elif assignee == by:
+        text = "Took this enquiry."
+    else:
+        text = f"Assigned to {assignee.get_full_name() or assignee.username}."
+    EnquiryNote.objects.create(enquiry=enquiry, author=by, note=text)

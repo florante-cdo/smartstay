@@ -92,11 +92,11 @@ def inbox(request):
 
 
 from django.contrib import messages  # noqa: E402
-from django.core.exceptions import ValidationError  # noqa: E402
+from django.core.exceptions import PermissionDenied, ValidationError  # noqa: E402
 from django.shortcuts import get_object_or_404, redirect  # noqa: E402
 
 from .forms import NoteForm, StatusForm  # noqa: E402
-from .services import change_status  # noqa: E402
+from .services import assign, change_status, staff_users  # noqa: E402
 from .workflow import allowed_next  # noqa: E402
 
 
@@ -136,9 +136,16 @@ def enquiry_detail(request, pk):
                     messages.success(request, "Status updated.")
                     return redirect("staff_enquiry", pk=enquiry.pk)
         elif action == "assign":
-            enquiry.assigned_to = request.user
-            enquiry.save(update_fields=["assigned_to", "updated_at"])
+            assign(enquiry, request.user, request.user)
             messages.success(request, "This enquiry is now assigned to you.")
+            return redirect("staff_enquiry", pk=enquiry.pk)
+        elif action == "assign_to":
+            if user_role(request.user) != "manager":
+                raise PermissionDenied
+            raw = request.POST.get("assignee", "")
+            assignee = get_object_or_404(staff_users(), pk=raw) if raw else None
+            assign(enquiry, assignee, request.user)
+            messages.success(request, "Assignment updated.")
             return redirect("staff_enquiry", pk=enquiry.pk)
 
     labels = dict(Enquiry.Status.choices)
@@ -164,6 +171,8 @@ def enquiry_detail(request, pk):
         "note_form": note_form,
         "status_form": status_form,
         "can_change": bool(allowed_next(enquiry.status)),
+        "is_manager": user_role(request.user) == "manager",
+        "staff": staff_users() if user_role(request.user) == "manager" else [],
         "reservations": enquiry.reservations.select_related("room_type").order_by("-created_at"),
         "can_reserve": enquiry.status in ("contacted", "pending_guest"),
     }
