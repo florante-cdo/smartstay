@@ -22,3 +22,24 @@ class RoomType(models.Model):
 
     def __str__(self):
         return self.name
+
+from django.conf import settings  # noqa: E402
+
+
+class StaffProfile(models.Model):
+    """Extra staff details that Django's built-in user does not hold."""
+
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="staff_profile"
+    )
+    phone = models.CharField(max_length=20, blank=True)
+    job_title = models.CharField(max_length=80, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    @classmethod
+    def for_user(cls, user):
+        profile, _ = cls.objects.get_or_create(user=user)
+        return profile
+
+    def __str__(self):
+        return f"Profile for {self.user}"

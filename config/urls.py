@@ -2,6 +2,7 @@ from dashboard import views as dashboard_views
 from dashboard import api as dashboard_api
 from campaigns import views as campaign_views
 from reservations import views as reservation_views
+from core.profile_views import profile as staff_profile_view
 from enquiries.views import enquiry_create, enquiry_detail, enquiry_quick
 from django.contrib import admin
 from django.contrib.auth.views import LoginView, LogoutView
@@ -26,6 +27,7 @@ urlpatterns = [
     path("staff/inbox/", enquiry_views.inbox, name="staff_inbox"),
     path("staff/enquiries/<int:pk>/", enquiry_detail, name="staff_enquiry"),
     path("staff/enquiries/new/", enquiry_create, name="staff_enquiry_new"),
+    path("staff/profile/", staff_profile_view, name="staff_profile"),
     path("staff/dashboard/", dashboard_views.dashboard, name="staff_dashboard"),
     path("api/v1/dashboard/", dashboard_api.dashboard_summary, name="api_dashboard"),
     path("staff/campaigns/", campaign_views.campaign_list, name="staff_campaigns"),

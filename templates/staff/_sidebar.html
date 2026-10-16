@@ -76,10 +76,14 @@
   </div>
 
   <div class="sb-foot flex items-center justify-between gap-3 border-t border-white/10 px-5 py-3 text-sm">
-    <div class="sb-label min-w-0">
-      <p class="truncate font-medium text-white">{{ request.user.get_full_name|default:request.user.username }}</p>
-      <p class="capitalize text-garden-100/70">{{ role }}</p>
-    </div>
+    <a href="{% url 'staff_profile' %}" title="My profile"
+       class="flex min-w-0 items-center gap-3 rounded-md p-1 {% if nav == 'profile' %}bg-white/10{% else %}hover:bg-white/5{% endif %}">
+      <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-garden-600 text-sm font-semibold text-white" aria-hidden="true">{{ request.user.get_full_name|default:request.user.username|slice:":1"|upper }}</span>
+      <span class="sb-label min-w-0">
+        <span class="block truncate font-medium text-white">{{ request.user.get_full_name|default:request.user.username }}</span>
+        <span class="block capitalize text-garden-100/70">{{ role }}</span>
+      </span>
+    </a>
     <form method="post" action="{% url 'staff_logout' %}" hx-boost="false">
       {% csrf_token %}
       <button type="submit" title="Sign out" class="flex items-center gap-2 rounded-md px-2.5 py-1.5 font-medium text-garden-100 hover:bg-white/10 hover:text-white">
