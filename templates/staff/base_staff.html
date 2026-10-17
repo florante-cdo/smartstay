@@ -9,8 +9,9 @@
   aside { view-transition-name: staff-sidebar; }
   .sb-mark { display: none; }
   @media (max-width: 767px) {
-    #staff-aside.is-open #sb-nav { display: flex; }
-    #staff-aside.is-open #sb-footwrap { display: block; }
+    html.nav-open { overflow: hidden; }
+    html.nav-open #staff-aside { transform: none; box-shadow: 0 0 40px rgb(0 0 0 / .35); }
+    html.nav-open #sb-backdrop { display: block; }
   }
   @media (max-width: 899px) {
     #staff-main table[data-cards], #staff-main table[data-cards] tbody { display: block; width: 100%; }
@@ -25,6 +26,7 @@
     #staff-main table[data-cards] tbody td:first-child::before,
     #staff-main table[data-cards] tbody td:last-child::before,
     #staff-main table[data-cards] tbody td[data-label=""]::before { display: none; }
+    #staff-main table[data-cards] tbody td[data-mobile-hide] { display: none; }
   }
   @keyframes toast-in { from { transform: translateY(-8px); opacity: 0; } to { transform: none; opacity: 1; } }
   .toast { animation: toast-in .2s ease-out; }
@@ -128,15 +130,33 @@
             td.setAttribute("data-label", heads[i] || "");
           });
         });
+        if (heads.indexOf("Source") !== -1 && heads.indexOf("Stay") !== -1) {
+          tbl.querySelectorAll("tbody tr").forEach(function (tr) {
+            Array.prototype.forEach.call(tr.children, function (td, i) {
+              if (heads[i] === "Stay" || heads[i] === "Received") td.setAttribute("data-mobile-hide", "");
+            });
+          });
+        }
         tbl.setAttribute("data-cards", "");
       });
     }
+    var root = document.documentElement;
+    function setNav(open) {
+      root.classList.toggle("nav-open", open);
+      var menu = document.getElementById("sb-menu");
+      var close = document.getElementById("sb-close");
+      if (menu) menu.setAttribute("aria-expanded", open ? "true" : "false");
+      if (open && close) close.focus();
+    }
     document.addEventListener("click", function (e) {
-      var btn = e.target.closest && e.target.closest("#sb-menu");
-      var aside = document.getElementById("staff-aside");
-      if (!btn || !aside) return;
-      btn.setAttribute("aria-expanded", aside.classList.toggle("is-open") ? "true" : "false");
+      var t = e.target;
+      if (!t.closest) return;
+      if (t.closest("#sb-menu")) { setNav(true); return; }
+      if (t.closest("#sb-close") || t.closest("#sb-backdrop")) { setNav(false); return; }
+      if (t.closest("#staff-aside a")) setNav(false);
     });
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape") setNav(false); });
+    document.addEventListener("htmx:afterSwap", function () { setNav(false); });
     document.addEventListener("DOMContentLoaded", cards);
     document.addEventListener("htmx:afterSwap", cards);
     document.addEventListener("htmx:afterSettle", cards);

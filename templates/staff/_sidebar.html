@@ -1,60 +1,68 @@
-<aside id="staff-aside" class="sticky top-0 z-40 max-h-screen overflow-y-auto bg-garden-900 text-garden-100 md:z-auto md:max-h-none md:flex md:h-screen md:w-64 md:shrink-0 md:flex-col md:justify-between md:overflow-y-auto">
+<header id="mobile-bar" class="sticky top-0 z-30 flex items-center gap-1 bg-garden-900 px-2 py-1.5 text-white md:hidden">
+  <button id="sb-menu" type="button" aria-expanded="false" aria-controls="staff-aside" aria-label="Open menu"
+          class="inline-flex h-11 w-11 items-center justify-center rounded-md hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white">
+    <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+  </button>
+  <a href="{% url 'staff_home' %}" class="font-display text-lg font-semibold">Starwood Gardens</a>
+</header>
+<div id="sb-backdrop" class="fixed inset-0 z-40 hidden bg-black/40 md:hidden" aria-hidden="true"></div>
+
+<aside id="staff-aside" class="fixed inset-y-0 left-0 z-50 flex w-72 max-w-[85vw] -translate-x-full flex-col justify-between overflow-y-auto bg-garden-900 text-garden-100 transition-transform duration-200 md:sticky md:inset-auto md:top-0 md:z-auto md:h-screen md:w-64 md:max-w-none md:shrink-0 md:translate-x-0 md:transition-none">
   <div>
-    <div class="sb-brand flex items-center justify-between gap-2 px-4 py-3 md:px-5 md:py-5">
+    <div class="sb-brand flex items-center justify-between gap-2 px-5 py-5">
       <a href="{% url 'staff_home' %}" class="min-w-0" aria-label="Starwood Gardens staff home">
         <span class="sb-label block font-display text-xl font-semibold text-white">Starwood Gardens</span>
-        <span class="sb-label hidden text-sm text-garden-100/70 md:block">Staff area</span>
-        {% if demo_mode %}<span class="sb-label mt-1.5 hidden md:inline-block rounded bg-amber-400/20 px-1.5 py-0.5 text-xs font-medium text-amber-200" title="Sample data. No live availability or payments.">Sample data</span>{% endif %}
+        <span class="sb-label block text-sm text-garden-100/70">Staff area</span>
+        {% if demo_mode %}<span class="sb-label mt-1.5 inline-block rounded bg-amber-400/20 px-1.5 py-0.5 text-xs font-medium text-amber-200" title="Sample data. No live availability or payments.">Sample data</span>{% endif %}
         <span class="sb-mark font-display text-xl font-semibold text-white" aria-hidden="true">SG</span>
       </a>
       <button id="sb-toggle" type="button" aria-expanded="true" aria-label="Collapse sidebar" title="Collapse sidebar"
               class="hidden h-8 w-8 shrink-0 items-center justify-center rounded-md text-garden-100/80 hover:bg-white/10 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-white md:inline-flex">
         <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
       </button>
-      <button id="sb-menu" type="button" aria-expanded="false" aria-controls="sb-nav"
-              class="inline-flex h-10 items-center gap-2 rounded-md px-3 text-sm font-medium text-garden-100 hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white md:hidden">
-        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
-        Menu
+      <button id="sb-close" type="button" aria-label="Close menu"
+              class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md text-garden-100/80 hover:bg-white/10 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-white md:hidden">
+        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
       </button>
     </div>
 
-    <nav id="sb-nav" class="hidden flex-col gap-0.5 px-3 pb-3 md:flex md:pb-0" aria-label="Staff navigation">
+    <nav id="sb-nav" class="flex flex-col gap-0.5 px-3 pb-3 md:pb-0" aria-label="Staff navigation">
       <p class="sb-label px-3 pb-1 pt-2 text-xs font-medium text-garden-100/50">Work</p>
 
       <a href="{% url 'staff_home' %}" title="Overview"
-         class="relative flex items-center gap-3 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium {% if nav == 'home' %}bg-white/10 text-white{% else %}text-garden-100/80 hover:bg-white/5 hover:text-white{% endif %}">
+         class="relative flex items-center gap-3 whitespace-nowrap rounded-md px-3 py-3 text-sm font-medium md:py-2 {% if nav == 'home' %}bg-white/10 text-white{% else %}text-garden-100/80 hover:bg-white/5 hover:text-white{% endif %}">
         <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>
         <span class="sb-label">Overview</span>
       </a>
 
       <a href="{% url 'staff_inbox' %}" title="All enquiries"
-         class="relative flex items-center gap-3 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium {% if nav == 'inbox' and status != 'new' and assigned != 'me' %}bg-white/10 text-white{% else %}text-garden-100/80 hover:bg-white/5 hover:text-white{% endif %}">
+         class="relative flex items-center gap-3 whitespace-nowrap rounded-md px-3 py-3 text-sm font-medium md:py-2 {% if nav == 'inbox' and status != 'new' and assigned != 'me' %}bg-white/10 text-white{% else %}text-garden-100/80 hover:bg-white/5 hover:text-white{% endif %}">
         <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5.1 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.5-6.9A2 2 0 0 0 16.8 4H7.2a2 2 0 0 0-1.7 1.1z"/></svg>
         <span class="sb-label">All enquiries</span>
       </a>
 
       <a href="{% url 'staff_inbox' %}?assigned=me" title="My enquiries"
-         class="relative flex items-center gap-3 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium {% if nav == 'inbox' and assigned == 'me' %}bg-white/10 text-white{% else %}text-garden-100/80 hover:bg-white/5 hover:text-white{% endif %}">
+         class="relative flex items-center gap-3 whitespace-nowrap rounded-md px-3 py-3 text-sm font-medium md:py-2 {% if nav == 'inbox' and assigned == 'me' %}bg-white/10 text-white{% else %}text-garden-100/80 hover:bg-white/5 hover:text-white{% endif %}">
         <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
         <span class="sb-label">My enquiries</span>
         {% if nav_mine_count %}<span class="sb-badge ml-auto rounded-full bg-white/15 px-2 py-0.5 text-xs font-semibold tabular-nums text-white">{{ nav_mine_count }}</span>{% endif %}
       </a>
 
       <a href="{% url 'staff_inbox' %}?status=new" title="New enquiries"
-         class="relative flex items-center gap-3 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium {% if nav == 'inbox' and status == 'new' and assigned != 'me' %}bg-white/10 text-white{% else %}text-garden-100/80 hover:bg-white/5 hover:text-white{% endif %}">
+         class="relative flex items-center gap-3 whitespace-nowrap rounded-md px-3 py-3 text-sm font-medium md:py-2 {% if nav == 'inbox' and status == 'new' and assigned != 'me' %}bg-white/10 text-white{% else %}text-garden-100/80 hover:bg-white/5 hover:text-white{% endif %}">
         <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
         <span class="sb-label">New enquiries</span>
         {% if nav_new_count %}<span class="sb-badge ml-auto rounded-full bg-amber-400 px-2 py-0.5 text-xs font-semibold tabular-nums text-garden-900">{{ nav_new_count }}</span>{% endif %}
       </a>
 
       <a href="{% url 'staff_enquiry_new' %}" title="Log an enquiry"
-         class="relative flex items-center gap-3 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium {% if nav == 'log' %}bg-white/10 text-white{% else %}text-garden-100/80 hover:bg-white/5 hover:text-white{% endif %}">
+         class="relative flex items-center gap-3 whitespace-nowrap rounded-md px-3 py-3 text-sm font-medium md:py-2 {% if nav == 'log' %}bg-white/10 text-white{% else %}text-garden-100/80 hover:bg-white/5 hover:text-white{% endif %}">
         <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
         <span class="sb-label">Log an enquiry</span>
       </a>
 
       <a href="{% url 'staff_reservations' %}" title="Reservations"
-         class="relative flex items-center gap-3 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium {% if nav == 'reservations' %}bg-white/10 text-white{% else %}text-garden-100/80 hover:bg-white/5 hover:text-white{% endif %}">
+         class="relative flex items-center gap-3 whitespace-nowrap rounded-md px-3 py-3 text-sm font-medium md:py-2 {% if nav == 'reservations' %}bg-white/10 text-white{% else %}text-garden-100/80 hover:bg-white/5 hover:text-white{% endif %}">
         <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
         <span class="sb-label">Reservations</span>
         {% if nav_pending_count %}<span class="sb-badge ml-auto rounded-full bg-amber-400 px-2 py-0.5 text-xs font-semibold tabular-nums text-garden-900">{{ nav_pending_count }}</span>{% endif %}
@@ -63,12 +71,12 @@
       {% if role == "manager" %}
       <p class="sb-label px-3 pb-1 pt-4 text-xs font-medium text-garden-100/50">Manager</p>
       <a href="{% url 'staff_campaigns' %}" title="Campaign links"
-         class="relative flex items-center gap-3 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium {% if nav == 'campaigns' %}bg-white/10 text-white{% else %}text-garden-100/80 hover:bg-white/5 hover:text-white{% endif %}">
+         class="relative flex items-center gap-3 whitespace-nowrap rounded-md px-3 py-3 text-sm font-medium md:py-2 {% if nav == 'campaigns' %}bg-white/10 text-white{% else %}text-garden-100/80 hover:bg-white/5 hover:text-white{% endif %}">
         <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>
         <span class="sb-label">Campaign links</span>
       </a>
       <a href="{% url 'staff_team' %}" title="Staff"
-         class="relative flex items-center gap-3 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium {% if nav == 'team' %}bg-white/10 text-white{% else %}text-garden-100/80 hover:bg-white/5 hover:text-white{% endif %}">
+         class="relative flex items-center gap-3 whitespace-nowrap rounded-md px-3 py-3 text-sm font-medium md:py-2 {% if nav == 'team' %}bg-white/10 text-white{% else %}text-garden-100/80 hover:bg-white/5 hover:text-white{% endif %}">
         <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         <span class="sb-label">Staff</span>
       </a>
@@ -76,24 +84,24 @@
     </nav>
   </div>
 
-  <div id="sb-footwrap" class="hidden md:block">
-  <div class="sb-foot space-y-1 border-t border-white/10 px-3 py-3 text-sm">
-    <a href="{% url 'staff_profile' %}" title="My profile"
-       class="flex items-center gap-3 rounded-md px-3 py-2 {% if nav == 'profile' %}bg-white/10{% else %}hover:bg-white/5{% endif %}">
-      <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-garden-600 text-sm font-semibold text-white" aria-hidden="true">{{ request.user.get_full_name|default:request.user.username|slice:":1"|upper }}</span>
-      <span class="sb-label min-w-0">
-        <span class="block truncate font-medium text-white">{{ request.user.get_full_name|default:request.user.username }}</span>
-        <span class="block capitalize text-garden-100/70">{{ role }}</span>
-      </span>
-    </a>
-    <form method="post" action="{% url 'staff_logout' %}" hx-boost="false">
-      {% csrf_token %}
-      <button type="submit" title="Sign out"
-              class="flex w-full items-center gap-3 whitespace-nowrap rounded-md px-3 py-2 font-medium text-garden-100/80 hover:bg-white/5 hover:text-white">
-        <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5M21 12H9"/></svg>
-        <span class="sb-label">Sign out</span>
-      </button>
-    </form>
-  </div>
+  <div id="sb-footwrap">
+    <div class="sb-foot space-y-1 border-t border-white/10 px-3 py-3 text-sm">
+      <a href="{% url 'staff_profile' %}" title="My profile"
+         class="flex items-center gap-3 rounded-md px-3 py-2 {% if nav == 'profile' %}bg-white/10{% else %}hover:bg-white/5{% endif %}">
+        <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-garden-600 text-sm font-semibold text-white" aria-hidden="true">{{ request.user.get_full_name|default:request.user.username|slice:":1"|upper }}</span>
+        <span class="sb-label min-w-0">
+          <span class="block truncate font-medium text-white">{{ request.user.get_full_name|default:request.user.username }}</span>
+          <span class="block capitalize text-garden-100/70">{{ role }}</span>
+        </span>
+      </a>
+      <form method="post" action="{% url 'staff_logout' %}" hx-boost="false">
+        {% csrf_token %}
+        <button type="submit" title="Sign out"
+                class="flex w-full items-center gap-3 whitespace-nowrap rounded-md px-3 py-3 font-medium text-garden-100/80 hover:bg-white/5 hover:text-white md:py-2">
+          <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5M21 12H9"/></svg>
+          <span class="sb-label">Sign out</span>
+        </button>
+      </form>
+    </div>
   </div>
 </aside>
