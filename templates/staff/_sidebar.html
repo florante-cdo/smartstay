@@ -1,20 +1,25 @@
-<aside id="staff-aside" class="bg-garden-900 text-garden-100 md:sticky md:top-0 md:flex md:h-screen md:w-64 md:shrink-0 md:flex-col md:justify-between md:overflow-y-auto">
+<aside id="staff-aside" class="sticky top-0 z-40 max-h-screen overflow-y-auto bg-garden-900 text-garden-100 md:z-auto md:max-h-none md:flex md:h-screen md:w-64 md:shrink-0 md:flex-col md:justify-between md:overflow-y-auto">
   <div>
-    <div class="sb-brand flex items-center justify-between gap-2 px-5 py-5">
+    <div class="sb-brand flex items-center justify-between gap-2 px-4 py-3 md:px-5 md:py-5">
       <a href="{% url 'staff_home' %}" class="min-w-0" aria-label="Starwood Gardens staff home">
         <span class="sb-label block font-display text-xl font-semibold text-white">Starwood Gardens</span>
-        <span class="sb-label block text-sm text-garden-100/70">Staff area</span>
-        {% if demo_mode %}<span class="sb-label mt-1.5 inline-block rounded bg-amber-400/20 px-1.5 py-0.5 text-xs font-medium text-amber-200" title="Sample data. No live availability or payments.">Sample data</span>{% endif %}
+        <span class="sb-label hidden text-sm text-garden-100/70 md:block">Staff area</span>
+        {% if demo_mode %}<span class="sb-label mt-1.5 hidden md:inline-block rounded bg-amber-400/20 px-1.5 py-0.5 text-xs font-medium text-amber-200" title="Sample data. No live availability or payments.">Sample data</span>{% endif %}
         <span class="sb-mark font-display text-xl font-semibold text-white" aria-hidden="true">SG</span>
       </a>
       <button id="sb-toggle" type="button" aria-expanded="true" aria-label="Collapse sidebar" title="Collapse sidebar"
               class="hidden h-8 w-8 shrink-0 items-center justify-center rounded-md text-garden-100/80 hover:bg-white/10 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-white md:inline-flex">
         <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
       </button>
+      <button id="sb-menu" type="button" aria-expanded="false" aria-controls="sb-nav"
+              class="inline-flex h-10 items-center gap-2 rounded-md px-3 text-sm font-medium text-garden-100 hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white md:hidden">
+        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        Menu
+      </button>
     </div>
 
-    <nav class="flex items-center gap-1 overflow-x-auto px-3 pb-3 md:flex-col md:items-stretch md:gap-0.5 md:pb-0" aria-label="Staff navigation">
-      <p class="sb-label hidden px-3 pb-1 pt-2 text-xs font-medium text-garden-100/50 md:block">Work</p>
+    <nav id="sb-nav" class="hidden flex-col gap-0.5 px-3 pb-3 md:flex md:pb-0" aria-label="Staff navigation">
+      <p class="sb-label px-3 pb-1 pt-2 text-xs font-medium text-garden-100/50">Work</p>
 
       <a href="{% url 'staff_home' %}" title="Overview"
          class="relative flex items-center gap-3 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium {% if nav == 'home' %}bg-white/10 text-white{% else %}text-garden-100/80 hover:bg-white/5 hover:text-white{% endif %}">
@@ -56,7 +61,7 @@
       </a>
 
       {% if role == "manager" %}
-      <p class="sb-label hidden px-3 pb-1 pt-4 text-xs font-medium text-garden-100/50 md:block">Manager</p>
+      <p class="sb-label px-3 pb-1 pt-4 text-xs font-medium text-garden-100/50">Manager</p>
       <a href="{% url 'staff_campaigns' %}" title="Campaign links"
          class="relative flex items-center gap-3 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium {% if nav == 'campaigns' %}bg-white/10 text-white{% else %}text-garden-100/80 hover:bg-white/5 hover:text-white{% endif %}">
         <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>
@@ -71,6 +76,7 @@
     </nav>
   </div>
 
+  <div id="sb-footwrap" class="hidden md:block">
   <div class="sb-foot space-y-1 border-t border-white/10 px-3 py-3 text-sm">
     <a href="{% url 'staff_profile' %}" title="My profile"
        class="flex items-center gap-3 rounded-md px-3 py-2 {% if nav == 'profile' %}bg-white/10{% else %}hover:bg-white/5{% endif %}">
@@ -88,5 +94,6 @@
         <span class="sb-label">Sign out</span>
       </button>
     </form>
+  </div>
   </div>
 </aside>

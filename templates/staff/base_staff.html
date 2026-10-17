@@ -8,6 +8,24 @@
   @media (prefers-reduced-motion: reduce) { #quick-view[open] { animation: none; } }
   aside { view-transition-name: staff-sidebar; }
   .sb-mark { display: none; }
+  @media (max-width: 767px) {
+    #staff-aside.is-open #sb-nav { display: flex; }
+    #staff-aside.is-open #sb-footwrap { display: block; }
+  }
+  @media (max-width: 899px) {
+    #staff-main table[data-cards], #staff-main table[data-cards] tbody { display: block; width: 100%; }
+    #staff-main table[data-cards] thead { display: none; }
+    #staff-main table[data-cards] tbody tr { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem 1rem; padding: .9rem 1rem; }
+    #staff-main table[data-cards] tbody tr + tr { border-top: 1px solid rgb(20 46 34 / .1); }
+    #staff-main table[data-cards] tbody td { display: block; padding: 0; min-width: 0; }
+    #staff-main table[data-cards] tbody td::before { content: attr(data-label); display: block; font-size: .7rem; color: rgb(20 46 34 / .6); margin-bottom: .1rem; }
+    #staff-main table[data-cards] tbody td:first-child,
+    #staff-main table[data-cards] tbody td:last-child,
+    #staff-main table[data-cards] tbody td[colspan] { grid-column: 1 / -1; }
+    #staff-main table[data-cards] tbody td:first-child::before,
+    #staff-main table[data-cards] tbody td:last-child::before,
+    #staff-main table[data-cards] tbody td[data-label=""]::before { display: none; }
+  }
   @keyframes toast-in { from { transform: translateY(-8px); opacity: 0; } to { transform: none; opacity: 1; } }
   .toast { animation: toast-in .2s ease-out; }
   .toast.is-leaving { opacity: 0; transform: translateY(-8px); transition: opacity .2s ease, transform .2s ease; }
@@ -94,6 +112,35 @@
     document.addEventListener("htmx:beforeHistorySave", function () {
       document.querySelectorAll("#toasts [data-toast]").forEach(function (n) { n.remove(); });
     });
+  })();
+</script>
+<script>
+  (function () {
+    function cards() {
+      document.querySelectorAll("#staff-main table").forEach(function (tbl) {
+        if (tbl.closest("#dash")) return; // the chart's table view stays a table
+        var heads = Array.prototype.map.call(tbl.querySelectorAll("thead th"), function (th) {
+          return th.querySelector(".sr-only") ? "" : th.textContent.trim();
+        });
+        tbl.querySelectorAll("tbody tr").forEach(function (tr) {
+          Array.prototype.forEach.call(tr.children, function (td, i) {
+            if (td.colSpan > 1 || td.hasAttribute("data-label")) return;
+            td.setAttribute("data-label", heads[i] || "");
+          });
+        });
+        tbl.setAttribute("data-cards", "");
+      });
+    }
+    document.addEventListener("click", function (e) {
+      var btn = e.target.closest && e.target.closest("#sb-menu");
+      var aside = document.getElementById("staff-aside");
+      if (!btn || !aside) return;
+      btn.setAttribute("aria-expanded", aside.classList.toggle("is-open") ? "true" : "false");
+    });
+    document.addEventListener("DOMContentLoaded", cards);
+    document.addEventListener("htmx:afterSwap", cards);
+    document.addEventListener("htmx:afterSettle", cards);
+    window.addEventListener("pageshow", cards);
   })();
 </script>
 <script src="https://unpkg.com/htmx.org@2.0.4"></script>
