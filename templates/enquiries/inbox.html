@@ -1,4 +1,5 @@
 {% extends "staff/base_staff.html" %}
+{% load staff_extras %}
 
 {% block title %}Enquiries · Starwood Gardens{% endblock %}
 
@@ -44,42 +45,39 @@
 </div>
 
 <div class="mt-4 overflow-hidden rounded-lg border border-garden-900/10 bg-white">
-  <table class="w-full text-left text-sm">
+  <table class="w-full text-left text-sm" data-keep-table>
     <thead class="border-b border-garden-900/10 bg-garden-50/60 text-xs font-medium text-garden-900/60">
       <tr>
-        <th class="px-4 py-3 font-medium">Guest</th>
+        <th class="px-3 py-3 font-medium md:px-4">Guest</th>
         <th class="hidden px-4 py-3 font-medium md:table-cell">Stay</th>
-        <th class="hidden px-4 py-3 font-medium lg:table-cell">Source</th>
-        <th class="px-4 py-3 font-medium">Status</th>
+        <th class="px-2 py-3 font-medium md:hidden md:px-4 lg:table-cell">Source</th>
+        <th class="px-2 py-3 font-medium md:px-4">Status</th>
         <th class="hidden px-4 py-3 text-right font-medium md:table-cell">Received</th>
-        <th class="px-4 py-3 text-right font-medium"><span class="sr-only">Actions</span></th>
+        <th class="px-2 py-3 text-right font-medium md:px-4"><span class="sr-only">Actions</span></th>
       </tr>
     </thead>
     <tbody class="divide-y divide-garden-900/10">
       {% for row in rows %}
       <tr class="hover:bg-garden-50/60">
-        <td class="border-l-4 px-4 py-3 {% if row.needs_follow_up %}border-amber-500{% else %}border-transparent{% endif %}">
-          <p class="font-semibold">{{ row.guest_name }}</p>
-          <p class="mt-0.5 flex flex-wrap gap-x-3 text-xs text-garden-900/60">
+        <td class="border-l-4 px-3 py-3 md:px-4 {% if row.needs_follow_up %}border-amber-500{% else %}border-transparent{% endif %}">
+          <p class="font-semibold"><span class="md:hidden">{{ row.guest_name|short_name }}</span><span class="hidden md:inline">{{ row.guest_name }}</span></p>
+          <p class="mt-0.5 hidden flex-wrap gap-x-3 text-xs text-garden-900/60 md:flex">
             <span class="tabular-nums">{{ row.reference }}</span>
             <span class="tabular-nums">{{ row.phone }}</span>
             {% if row.assigned_to_id == request.user.id %}<span class="font-medium text-garden-700">Yours</span>{% elif row.assigned_to %}<span>{{ row.assigned_to.get_full_name|default:row.assigned_to.username }}</span>{% endif %}
-          </p>
-          <p class="mt-1 text-xs text-garden-900/70 md:hidden">
-            {{ row.requested_check_in|date:"d M" }} to {{ row.requested_check_out|date:"d M" }}, {{ row.guest_count }} guest{{ row.guest_count|pluralize }}
           </p>
         </td>
         <td class="hidden whitespace-nowrap px-4 py-3 md:table-cell">
           {{ row.requested_check_in|date:"d M" }} to {{ row.requested_check_out|date:"d M" }}
           <p class="text-xs text-garden-900/60">{{ row.guest_count }} guest{{ row.guest_count|pluralize }}</p>
         </td>
-        <td class="hidden px-4 py-3 lg:table-cell">
+        <td class="px-2 py-3 md:hidden md:px-4 lg:table-cell">
           {{ row.source_label }}
-          {% if row.campaign %}<p class="text-xs text-garden-900/60">{{ row.campaign.name }}</p>{% endif %}
+          {% if row.campaign %}<p class="hidden text-xs text-garden-900/60 lg:block">{{ row.campaign.name }}</p>{% endif %}
         </td>
-        <td class="px-4 py-3">
-          <span class="inline-flex items-center gap-2 whitespace-nowrap">
-            <span class="h-2 w-2 shrink-0 rounded-full {{ row.dot }}"></span>{{ row.get_status_display }}
+        <td class="px-2 py-3 md:px-4">
+          <span class="inline-flex items-start gap-2 md:items-center md:whitespace-nowrap">
+            <span class="mt-1.5 h-2 w-2 shrink-0 rounded-full md:mt-0 {{ row.dot }}"></span>{{ row.get_status_display }}
           </span>
           {% if row.needs_follow_up %}<p class="mt-0.5 text-xs font-medium text-amber-700">Needs follow-up</p>{% endif %}
         </td>
@@ -87,7 +85,7 @@
           {{ row.created_at|date:"d M" }}
           <p class="text-xs tabular-nums text-garden-900/60">{{ row.created_at|date:"H:i" }}</p>
         </td>
-        <td class="px-4 py-3 text-right">
+        <td class="px-2 py-3 text-right md:px-4">
           {% url 'staff_enquiry_quick' row.pk as quick_url %}{% include "staff/_view_button.html" with url=quick_url name=row.guest_name %}
         </td>
       </tr>

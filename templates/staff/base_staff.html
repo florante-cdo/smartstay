@@ -120,7 +120,7 @@
   (function () {
     function cards() {
       document.querySelectorAll("#staff-main table").forEach(function (tbl) {
-        if (tbl.closest("#dash")) return; // the chart's table view stays a table
+        if (tbl.hasAttribute("data-keep-table") || tbl.closest("#dash")) return; // these keep their own columns
         var heads = Array.prototype.map.call(tbl.querySelectorAll("thead th"), function (th) {
           return th.querySelector(".sr-only") ? "" : th.textContent.trim();
         });

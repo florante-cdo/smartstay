@@ -1,3 +1,4 @@
+import os
 from io import StringIO
 
 from django.conf import settings
@@ -36,14 +37,15 @@ class Command(BaseCommand):
 
         call_command("seed_demo", count=options["count"], stdout=StringIO())
 
+        password = os.environ.get("DEMO_PASSWORD", "demo12345")
         for username in ("reception", "manager"):
             user = User.objects.filter(username=username).first()
             if user:
-                user.set_password("demo12345")
+                user.set_password(password)
                 user.save(update_fields=["password"])
 
         self.stdout.write(self.style.SUCCESS(
             f"Demo reset: {Enquiry.objects.count()} enquiries, "
             f"{Campaign.objects.filter(is_active=True).count()} active campaigns. "
-            "Logins: reception / manager, password demo12345."
+            "Logins: reception and manager (password from DEMO_PASSWORD, default demo12345)."
         ))
